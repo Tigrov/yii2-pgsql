@@ -1,0 +1,25 @@
+{
+    "name": "tigrov/yii2-pgsql",
+    "description": "Improved PostgreSQL schemes and query builder for Yii 2",
+    "keywords": ["yii2", "extension", "pgsql", "postgres", "postgresql", "array", "json", "bit"],
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+        "source": "https://github.com/tigrov/yii2-pgsql"
+    },
+    "authors": [
+        {
+            "name": "Sergei Tigrov",
+            "email": "rrr-r@ya.ru"
+        }
+    ],
+    "require": {
+        "php": ">=5.6",
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "tigrov\\pgsql\\": "src/"
+        }
+    }
+}
