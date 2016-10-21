@@ -14,6 +14,7 @@ Limitation
 ------------
 
 When you use this extension you can't specify the PDO type by using an array: `[value, type]`,
+
 e.g. `['name' => 'John', 'profile' => [$profile, \PDO::PARAM_LOB]]`.
 
 

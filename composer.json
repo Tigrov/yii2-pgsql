@@ -1,7 +1,7 @@
 {
     "name": "tigrov/yii2-pgsql",
     "description": "Improved PostgreSQL schemes and query builder for Yii 2",
-    "keywords": ["yii2", "extension", "pgsql", "postgres", "postgresql", "array", "json", "bit"],
+    "keywords": ["yii2", "extension", "pgsql", "postgres", "postgresql", "array", "json", "bit", "datetime", "timestamp"],
     "type": "yii2-extension",
     "license": "MIT",
     "support": {
