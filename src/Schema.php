@@ -21,14 +21,11 @@ class Schema extends \yii\db\pgsql\Schema
 
     public function init()
     {
-        $this->typeMap = array_merge($this->typeMap, [
-            'bit' => self::TYPE_BIT,
-            'bit varying' => self::TYPE_BIT,
-            'varbit' => self::TYPE_BIT,
-
-            'json' => self::TYPE_JSON,
-            'jsonb' => self::TYPE_JSON,
-        ]);
+        $this->typeMap['bit'] = static::TYPE_BIT;
+        $this->typeMap['bit varying'] = static::TYPE_BIT;
+        $this->typeMap['varbit'] = static::TYPE_BIT;
+        $this->typeMap['json'] = static::TYPE_JSON;
+        $this->typeMap['jsonb'] = static::TYPE_JSON;
 
         parent::init();
     }
@@ -173,7 +170,7 @@ SQL;
      */
     protected function getColumnPhpType($column)
     {
-        if (self::TYPE_JSON == $column->type) {
+        if (static::TYPE_JSON == $column->type) {
             return 'array';
         }
 

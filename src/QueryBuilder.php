@@ -17,10 +17,8 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
 {
     public function init()
     {
-        $this->typeMap = array_merge($this->typeMap, [
-            Schema::TYPE_JSON => 'jsonb',
-            Schema::TYPE_BIT => 'bit',
-        ]);
+        $this->typeMap[Schema::TYPE_JSON] = 'jsonb';
+        $this->typeMap[Schema::TYPE_BIT] = 'bit';
 
         parent::init();
     }
