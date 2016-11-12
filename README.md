@@ -6,8 +6,8 @@ Improved PostgreSQL schemes and query builder for Yii2.
 Supports follow types for ActiveRecord models:
 * `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * `json`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
-* fix `bit` type, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
-* convert Postgres' types `timestamp`, `date` and `time` to PHP's type `\DateTime` and vice versa.
+* fixes type `bit`, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
+* converts Postgres' types `timestamp`, `date` and `time` to PHP's type `\DateTime` and vice versa.
 
 
 Limitation
