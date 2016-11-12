@@ -19,12 +19,12 @@ class ArrayConverter extends \yii\base\Component
     public $delimiter;
 
     /**
-     * Convert array From PHP to PostgreSQL
+     * Convert array from PHP to PostgreSQL
      *
      * @param $value
      * @return null|string
      */
-    public function fromPhp($value)
+    public function toDb($value)
     {
         if (!is_array($value)) {
             return null;
