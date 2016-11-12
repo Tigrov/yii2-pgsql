@@ -24,7 +24,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public $delimiter;
 
     /**
-     * @var ArrayConverter
+     * @var ArrayConverter object for converting array values.
      */
     private $_arrayConverter;
 
@@ -35,7 +35,9 @@ class ColumnSchema extends \yii\db\ColumnSchema
     {
         if ($this->dimension > 0) {
             if (is_array($value)) {
-                array_walk_recursive($value, [$this, 'dbTypecastRef']);
+                array_walk_recursive($value, function (&$value, $key) {
+                    $value = $this->dbTypecastValue($value);
+                });
             }
 
             return $this->getArrayConverter()->toDb($value);
@@ -44,11 +46,11 @@ class ColumnSchema extends \yii\db\ColumnSchema
         return $this->dbTypecastValue($value);
     }
 
-    public function dbTypecastRef(&$value, $key)
-    {
-        $value = $this->dbTypecastValue($value);
-    }
-
+    /**
+     * Converts the input value according to [[type]] and [[dbType]] for use in a db query.
+     * @param mixed $value input value
+     * @return mixed converted value.
+     */
     public function dbTypecastValue($value)
     {
         switch ($this->type) {
@@ -76,7 +78,9 @@ class ColumnSchema extends \yii\db\ColumnSchema
         if ($this->dimension > 0) {
             $value = $this->getArrayConverter()->toPhp($value);
             if (is_array($value)) {
-                array_walk_recursive($value, [$this, 'phpTypecastRef']);
+                array_walk_recursive($value, function (&$value, $key) {
+                    $value = $this->phpTypecastValue($value);
+                });
             }
 
             return $value;
@@ -85,11 +89,11 @@ class ColumnSchema extends \yii\db\ColumnSchema
         return $this->phpTypecastValue($value);
     }
 
-    public function phpTypecastRef(&$value, $key)
-    {
-        $value = $this->phpTypecastValue($value);
-    }
-
+    /**
+     * Converts the input value according to [[phpType]] after retrieval from the database.
+     * @param mixed $value input value
+     * @return mixed converted value
+     */
     public function phpTypecastValue($value)
     {
         switch ($this->type) {
@@ -108,6 +112,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
     }
 
     /**
+     * Get or create an object of `ArrayConverter` class.
      * @return ArrayConverter
      */
     public function getArrayConverter()
