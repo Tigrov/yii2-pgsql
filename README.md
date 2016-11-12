@@ -3,11 +3,11 @@ yii2-pgsql
 
 Improved PostgreSQL schemes and query builder for Yii2.
 
-Supports next types for ActiveRecord models:
+Supports follow types for ActiveRecord models:
 * `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * `json`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * fix `bit` type, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
-* convert `timestamp`, `date` and `time` Postgres' types to `\DateTime` PHP's type and vice versa.
+* convert Postgres' types `timestamp`, `date` and `time` to PHP's type `\DateTime` and vice versa.
 
 
 Limitation
@@ -17,6 +17,7 @@ When you use this extension you can't specify the PDO type by using an array: `[
 
 e.g. `['name' => 'John', 'profile' => [$profile, \PDO::PARAM_LOB]]`.
 
+See issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 
 Installation
 ------------
