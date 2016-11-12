@@ -14,7 +14,7 @@ namespace tigrov\pgsql;
 class ColumnSchema extends \yii\db\ColumnSchema
 {
     /**
-     * @var integer the dimension of an array (the number of indices needed to select an element), 0 if not array
+     * @var integer the dimension of an array (the number of indices needed to select an element), 0 if it is not an array.
      */
     public $dimension;
 
@@ -34,9 +34,23 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public function dbTypecast($value)
     {
         if ($this->dimension > 0) {
-            return $this->getArrayConverter()->fromPhp($value);
+            if (is_array($value)) {
+                array_walk_recursive($value, [$this, 'dbTypecastRef']);
+            }
+
+            return $this->getArrayConverter()->toDb($value);
         }
 
+        return $this->dbTypecastValue($value);
+    }
+
+    public function dbTypecastRef(&$value, $key)
+    {
+        $value = $this->dbTypecastValue($value);
+    }
+
+    public function dbTypecastValue($value)
+    {
         switch ($this->type) {
             case Schema::TYPE_BIT:
                 return decbin($value);
@@ -60,9 +74,24 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public function phpTypecast($value)
     {
         if ($this->dimension > 0) {
-            return $this->getArrayConverter()->toPhp($value);
+            $value = $this->getArrayConverter()->toPhp($value);
+            if (is_array($value)) {
+                array_walk_recursive($value, [$this, 'phpTypecastRef']);
+            }
+
+            return $value;
         }
 
+        return $this->phpTypecastValue($value);
+    }
+
+    public function phpTypecastRef(&$value, $key)
+    {
+        $value = $this->phpTypecastValue($value);
+    }
+
+    public function phpTypecastValue($value)
+    {
         switch ($this->type) {
             case Schema::TYPE_BIT:
                 return bindec($value);
