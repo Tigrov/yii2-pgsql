@@ -1,7 +1,7 @@
 yii2-pgsql
 ==============
 
-Improved PostgreSQL schemes and query builder for Yii2.
+Improved PostgreSQL schemas for Yii2.
 
 Supports follow types for ActiveRecord models:
 * `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
