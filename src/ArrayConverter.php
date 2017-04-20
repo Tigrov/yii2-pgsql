@@ -116,17 +116,13 @@ class ArrayConverter extends \yii\base\Component
         $ends = $quoted ? ['"'] : [$this->delimiter, '}'];
         $result = '';
         for ($i += $quoted; $i < strlen($value); ++$i) {
-            $ch = $value[$i];
-            if (in_array($ch, $ends)) {
+            if (in_array($value[$i], $ends)) {
                 break;
-            } elseif ($ch == '\\') {
+            } elseif ($value[$i] == '\\' && in_array($value[$i + 1], ['\\', '"'])) {
                 ++$i;
-                if (in_array($value[$i], ['\\', '"'])) {
-                    $result .= $value[$i];
-                }
-            } else {
-                $result .= $ch;
             }
+
+            $result .= $value[$i];
         }
 
         $i += $quoted - 1;
