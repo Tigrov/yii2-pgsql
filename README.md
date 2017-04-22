@@ -7,7 +7,7 @@ Supports follow types for ActiveRecord models:
 * `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * `json`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * fixes type `bit`, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
-* converts Postgres' types `timestamp`, `date` and `time` to PHP's type `\DateTime` and vice versa.
+* converts Postgres types `timestamp`, `date` and `time` to PHP type `\DateTime` and vice versa.
 
 
 Limitation
