@@ -7,7 +7,7 @@
 namespace tigrov\pgsql;
 
 /**
- * ArrayConverter is the class for converting Postgres' `array` type to PHP's `array` type and vice versa.
+ * ArrayConverter is the class for converting Postgres `array` type to PHP `array` type and vice versa.
  *
  * @author Sergei Tigrov <rrr-r@ya.ru>
  */
