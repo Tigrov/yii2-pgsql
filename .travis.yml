@@ -2,7 +2,7 @@ services:
   - postgresql
 
 addons:
-  postgresql: "9.5"
+  postgresql: 9.5
 
 language: php
 
@@ -14,8 +14,8 @@ php:
   - 7.1
   - hhvm
 
-# faster builds on new travis setup not using sudo
-sudo: false
+# required to support postgresql 9.5
+sudo: required
 dist: trusty
 
 # cache vendor dirs
