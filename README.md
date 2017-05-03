@@ -9,6 +9,8 @@ Supports follow types for ActiveRecord models:
 * fixes type `bit`, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
 * converts Postgres types `timestamp`, `date` and `time` to PHP type `\DateTime` and vice versa.
 
+[![Latest Stable Version](https://poser.pugx.org/Tigrov/yii2-pgsql/v/stable)](https://packagist.org/packages/Tigrov/yii2-pgsql)
+[![Build Status](https://travis-ci.org/Tigrov/yii2-pgsql.svg?branch=master)](https://travis-ci.org/Tigrov/yii2-pgsql)
 
 Limitation
 ------------
@@ -27,13 +29,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist tigrov/yii2-pgsql "*"
+php composer.phar require --prefer-dist tigrov/yii2-pgsql
 ```
 
 or add
 
 ```
-"tigrov/yii2-pgsql": "*"
+"tigrov/yii2-pgsql": "~1.0.0"
 ```
 
 to the require section of your `composer.json` file.
