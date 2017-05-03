@@ -164,7 +164,7 @@ SQL;
      */
     protected function createColumnSchema()
     {
-        return Yii::createObject(ColumnSchema::class);
+        return Yii::createObject(ColumnSchema::className());
     }
 
     /**

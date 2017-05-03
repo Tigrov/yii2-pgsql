@@ -137,7 +137,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
     {
         if ($this->_arrayConverter === null) {
             $this->_arrayConverter = \Yii::createObject([
-                'class' => ArrayConverter::class,
+                'class' => ArrayConverter::className(),
                 'delimiter' => $this->delimiter,
             ]);
         }
