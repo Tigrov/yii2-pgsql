@@ -9,7 +9,7 @@ abstract class AbstractColumnSchemaArrayTest extends AbstractColumnSchemaTest
      */
     public function testArrayDbTypecast($expected, $value)
     {
-        $this->assertEquals($expected, $this->fixture->dbTypecast($value));
+        $this->assertSame($expected, $this->fixture->dbTypecast($value));
     }
 
     /**
@@ -17,7 +17,7 @@ abstract class AbstractColumnSchemaArrayTest extends AbstractColumnSchemaTest
      */
     public function testArrayPhpTypecast($value, $expected)
     {
-        $this->assertEquals($expected, $this->fixture->phpTypecast($value));
+        $this->assertSame($expected, $this->fixture->phpTypecast($value));
     }
 
     public function arrayValuesProvider()

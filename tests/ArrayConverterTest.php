@@ -66,6 +66,9 @@ class ArrayConverterTest extends TestCase
 
     public function testAdditionalToPhp()
     {
+        $this->assertEquals(['',''], $this->fixture->toPhp('{,}'));
+        $this->assertEquals(['','',''], $this->fixture->toPhp('{,,}'));
+        $this->assertEquals(['.'], $this->fixture->toPhp('{.}'));
         $this->assertEquals(['string'], $this->fixture->toPhp('{string}'));
         $this->assertEquals(['string1', ',', 'string3'], $this->fixture->toPhp('{string1,",",string3}'));
     }
