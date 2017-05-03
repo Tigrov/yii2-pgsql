@@ -1,1 +1,9 @@
 .idea
+
+/vendor
+/composer.lock
+
+# phpunit
+phpunit.phar
+/phpunit.xml
+/tests/runtime
