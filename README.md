@@ -17,7 +17,7 @@ When you use this extension you can't specify the PDO type by using an array: `[
 
 e.g. `['name' => 'John', 'profile' => [$profile, \PDO::PARAM_LOB]]`.
 
-See issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
+See the issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 
 Installation
 ------------

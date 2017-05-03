@@ -76,9 +76,11 @@ SELECT
          WHEN 701 /*float8*/ THEN 53 /*DBL_MANT_DIG*/
          ELSE null
       END   AS numeric_precision,
-      CASE
-        WHEN atttypid IN (21, 23, 20) THEN 0
-        WHEN atttypid IN (1700) THEN
+      CASE (CASE WHEN t.typelem > 0 THEN t.typelem ELSE a.atttypid END)
+        WHEN 21 THEN 0
+        WHEN 23 THEN 0
+        WHEN 20 THEN 0
+        WHEN 1700 THEN
         CASE
             WHEN atttypmod = -1 THEN null
             ELSE (atttypmod - 4) & 65535
@@ -147,7 +149,7 @@ SQL;
     protected function loadColumnSchema($info)
     {
         $column = parent::loadColumnSchema($info);
-        if ($column->size === null && $info['modifier'] >= 4) {
+        if ($column->size === null && $info['modifier'] != -1 && !$column->scale) {
             $column->size = (int) $info['modifier'] - 4;
         }
         $column->dimension = (int) $info['array_dimension'];
@@ -170,8 +172,14 @@ SQL;
      */
     protected function getColumnPhpType($column)
     {
-        if (static::TYPE_JSON == $column->type) {
-            return 'array';
+        static $typeMap = [
+            // abstract type => php type
+            self::TYPE_BIT => 'integer',
+            self::TYPE_JSON => 'array',
+        ];
+
+        if (isset($typeMap[$column->type])) {
+            return $typeMap[$column->type];
         }
 
         return parent::getColumnPhpType($column);
