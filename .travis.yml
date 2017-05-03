@@ -14,9 +14,8 @@ php:
   - 7.1
   - hhvm
 
-# required to support postgresql 9.5
-sudo: required
-dist: trusty
+# faster builds on new travis setup not using sudo
+sudo: false
 
 # cache vendor dirs
 cache:
