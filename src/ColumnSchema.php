@@ -53,11 +53,15 @@ class ColumnSchema extends \yii\db\ColumnSchema
      */
     public function dbTypecastValue($value)
     {
+        if ($value === null) {
+            return null;
+        }
+
         switch ($this->type) {
             case Schema::TYPE_BIT:
                 return decbin($value);
             case Schema::TYPE_JSON:
-                return $value !== null ? json_encode($value) : null;
+                return json_encode($value);
             case Schema::TYPE_TIMESTAMP:
             case Schema::TYPE_DATETIME:
                 return \Yii::$app->formatter->asDatetime($value, 'yyyy-MM-dd HH:mm:ss');
@@ -96,11 +100,25 @@ class ColumnSchema extends \yii\db\ColumnSchema
      */
     public function phpTypecastValue($value)
     {
+        if ($value === null) {
+            return null;
+        }
+
         switch ($this->type) {
+            case Schema::TYPE_BOOLEAN:
+                switch (strtolower($value)) {
+                    case 't':
+                    case 'true':
+                        return true;
+                    case 'f':
+                    case 'false':
+                        return false;
+                }
+                return (bool) $value;
             case Schema::TYPE_BIT:
                 return bindec($value);
             case Schema::TYPE_JSON:
-                return $value ? json_decode($value, true) : null;
+                return json_decode($value, true);
             case Schema::TYPE_TIMESTAMP:
             case Schema::TYPE_TIME:
             case Schema::TYPE_DATE:

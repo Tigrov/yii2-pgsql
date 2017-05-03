@@ -45,11 +45,11 @@ class ArrayConverter extends \yii\base\Component
      */
     public function toPhp($value)
     {
-        if (empty($value) || $value === 'NULL') {
+        if (!$value) {
             return null;
         }
 
-        if ($value == '{}' || $value == '{NULL}') {
+        if ($value == '{}') {
             return [];
         }
 
@@ -76,7 +76,7 @@ class ArrayConverter extends \yii\base\Component
         } elseif (is_bool($value)) {
             return $value ? 'true' : 'false';
         } elseif ($value === null) {
-            return 'null';
+            return 'NULL';
         }
 
         return $value;
@@ -126,6 +126,10 @@ class ArrayConverter extends \yii\base\Component
         }
 
         $i += $quoted - 1;
+
+        if (!$quoted && $result === 'NULL') {
+            $result = null;
+        }
 
         return $result;
     }
