@@ -35,9 +35,11 @@ class ActiveRecordTest extends TestCase
             }
         }
 
-        $model->save();
+        $this->assertTrue($model->save(false));
 
         $newModel = Datatypes::findOne($model->id);
+        $this->assertNotNull($newModel);
+
         foreach ($newModel->attributes() as $attribute) {
             if ($attribute != 'id') {
                 $this->assertNull($newModel->$attribute);
@@ -65,9 +67,11 @@ class ActiveRecordTest extends TestCase
             $model->$attribute = $value;
         }
 
-        $model->save();
+        $this->assertTrue($model->save(false));
 
         $newModel = Datatypes::findOne($model->id);
+        $this->assertNotNull($newModel);
+
         foreach ($attributes as $attribute) {
             $this->assertSame($value, $newModel->$attribute);
         }
@@ -80,10 +84,14 @@ class ActiveRecordTest extends TestCase
     {
         $model = new Datatypes;
         $model->$attribute = $value;
-        $model->save();
+
+        $this->assertTrue($model->save(false));
+
+        $newModel = Datatypes::findOne($model->id);
+        $this->assertNotNull($newModel);
 
         $assertMethod = $isSame ? 'assertSame' : 'assertEquals';
-        $this->$assertMethod($value, Datatypes::findOne($model->id)->$attribute);
+        $this->$assertMethod($value, $newModel->$attribute);
     }
 
     public function arrayValuesProvider()
