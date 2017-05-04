@@ -34,8 +34,8 @@ class ColumnSchemaDatetimeTest extends AbstractColumnSchemaTest
     public function valuesProvider()
     {
         return [
-            ['1901-01-01 00:00:00', new \DateTime('1901-01-01')],
-            ['2017-05-02 17:50:32', new \DateTime('2017-05-02 17:50:32')],
+            ['1901-01-01 00:00:00', new \DateTime('1901-01-01'), false],
+            ['2017-05-02 17:50:32', new \DateTime('2017-05-02 17:50:32'), false],
         ];
     }
 

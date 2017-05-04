@@ -40,8 +40,8 @@ class ColumnSchemaBitsTest extends AbstractColumnSchemaArrayTest
 
     public function testAdditionalPhpTypecast()
     {
-        $this->assertEquals([0], $this->fixture->phpTypecast('{0}'));
-        $this->assertEquals([1], $this->fixture->phpTypecast('{1}'));
-        $this->assertEquals([8, 15, null], $this->fixture->phpTypecast('{1000,1111,NULL}'));
+        $this->assertSame([0], $this->fixture->phpTypecast('{0}'));
+        $this->assertSame([1], $this->fixture->phpTypecast('{1}'));
+        $this->assertSame([8, 15, null], $this->fixture->phpTypecast('{1000,1111,NULL}'));
     }
 }

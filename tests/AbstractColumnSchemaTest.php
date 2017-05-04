@@ -26,9 +26,9 @@ abstract class AbstractColumnSchemaTest extends TestCase
     /**
      * @dataProvider valuesProvider
      */
-    public function testDbTypecast($expected, $value)
+    public function testDbTypecast($expected, $value, $isSame = true)
     {
-        $this->assertEquals($expected, $this->fixture->dbTypecast($value));
+        $this->assertSame($expected, $this->fixture->dbTypecast($value));
     }
 
     public function testNullPhpTypecast()
@@ -39,9 +39,10 @@ abstract class AbstractColumnSchemaTest extends TestCase
     /**
      * @dataProvider valuesProvider
      */
-    public function testPhpTypecast($value, $expected)
+    public function testPhpTypecast($value, $expected, $isSame = true)
     {
-        $this->assertEquals($expected, $this->fixture->phpTypecast($value));
+        $assertMethod = $isSame ? 'assertSame' : 'assertEquals';
+        $this->$assertMethod($expected, $this->fixture->phpTypecast($value));
     }
 
     abstract public function valuesProvider();

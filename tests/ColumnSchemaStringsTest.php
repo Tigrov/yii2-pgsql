@@ -33,6 +33,8 @@ class ColumnSchemaStringsTest extends AbstractColumnSchemaArrayTest
     {
         return [
             ['{""}', ['']],
+            ['{"",""}', ['', '']],
+            ['{"","",NULL}', ['', '', null]],
             ['{"string1","str\\\\in\\"g2","str,ing3"}', ['string1','str\\in"g2','str,ing3']],
             ['{"null","NULL",NULL}', ['null','NULL',null]],
         ];
@@ -40,7 +42,10 @@ class ColumnSchemaStringsTest extends AbstractColumnSchemaArrayTest
 
     public function testAdditionalPhpTypecast()
     {
-        $this->assertEquals(['string'], $this->fixture->phpTypecast('{string}'));
-        $this->assertEquals(['string1', ',', 'string3'], $this->fixture->phpTypecast('{string1,",",string3}'));
+        $this->assertSame(['', ''], $this->fixture->phpTypecast('{,}'));
+        $this->assertSame(['.'], $this->fixture->phpTypecast('{.}'));
+        $this->assertSame(['', '', null], $this->fixture->phpTypecast('{,,NULL}'));
+        $this->assertSame(['string'], $this->fixture->phpTypecast('{string}'));
+        $this->assertSame(['string1', ',', 'string3'], $this->fixture->phpTypecast('{string1,",",string3}'));
     }
 }

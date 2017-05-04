@@ -40,7 +40,7 @@ class ColumnSchemaBooleansTest extends AbstractColumnSchemaArrayTest
 
     public function testAdditionalPhpTypecast()
     {
-        $this->assertEquals([true], $this->fixture->phpTypecast('{t}'));
-        $this->assertEquals([false], $this->fixture->phpTypecast('{f}'));
+        $this->assertSame([true], $this->fixture->phpTypecast('{t}'));
+        $this->assertSame([false], $this->fixture->phpTypecast('{f}'));
     }
 }

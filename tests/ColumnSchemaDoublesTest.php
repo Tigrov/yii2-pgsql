@@ -32,7 +32,7 @@ class ColumnSchemaDoublesTest extends AbstractColumnSchemaArrayTest
     public function valuesProvider()
     {
         return [
-            ['{0}', [0]],
+            ['{0}', [0.0]],
             ['{-1.5}', [-1.5]],
             ['{1.5,-1.5,NULL}', [1.5, -1.5, null]],
         ];

@@ -42,9 +42,9 @@ class ColumnSchemaNumericsTest extends AbstractColumnSchemaArrayTest
 
     public function testAdditionalPhpTypecast()
     {
-        $this->assertEquals(['0'], $this->fixture->phpTypecast('{0}'));
-        $this->assertEquals(['0.00'], $this->fixture->phpTypecast('{0.00}'));
-        $this->assertEquals(['-1.00'], $this->fixture->phpTypecast('{-1.00}'));
-        $this->assertEquals(['-1.50'], $this->fixture->phpTypecast('{-1.50}'));
+        $this->assertSame(['0'], $this->fixture->phpTypecast('{0}'));
+        $this->assertSame(['0.00'], $this->fixture->phpTypecast('{0.00}'));
+        $this->assertSame(['-1.00'], $this->fixture->phpTypecast('{-1.00}'));
+        $this->assertSame(['-1.50'], $this->fixture->phpTypecast('{-1.50}'));
     }
 }

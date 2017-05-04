@@ -32,16 +32,16 @@ class ArrayConverterTest extends TestCase
 
     public function testBooleanToDb()
     {
-        $this->assertEquals('{false}', $this->fixture->toDb([false]));
-        $this->assertEquals('{true}', $this->fixture->toDb([true]));
+        $this->assertSame('{false}', $this->fixture->toDb([false]));
+        $this->assertSame('{true}', $this->fixture->toDb([true]));
     }
 
     /**
      * @dataProvider valuesProvider
      */
-    public function testToDb($expected, $value)
+    public function testToDb($expected, $value, $isSame = true)
     {
-        $this->assertEquals($expected, $this->fixture->toDb($value));
+        $this->assertSame($expected, $this->fixture->toDb($value));
     }
 
     public function testNullToPhp()
@@ -52,25 +52,26 @@ class ArrayConverterTest extends TestCase
     public function testBooleanToPhp()
     {
         // Typecasting for boolean type realized in ColumnSchema
-        $this->assertEquals(['f'], $this->fixture->toPhp('{f}'));
-        $this->assertEquals(['t'], $this->fixture->toPhp('{t}'));
+        $this->assertSame(['f'], $this->fixture->toPhp('{f}'));
+        $this->assertSame(['t'], $this->fixture->toPhp('{t}'));
     }
 
     /**
      * @dataProvider valuesProvider
      */
-    public function testToPhp($value, $expected)
+    public function testToPhp($value, $expected, $isSame = true)
     {
-        $this->assertEquals($expected, $this->fixture->toPhp($value));
+        $assertMethod = $isSame ? 'assertSame' : 'assertEquals';
+        $this->$assertMethod($expected, $this->fixture->toPhp($value));
     }
 
     public function testAdditionalToPhp()
     {
-        $this->assertEquals(['',''], $this->fixture->toPhp('{,}'));
-        $this->assertEquals(['','',''], $this->fixture->toPhp('{,,}'));
-        $this->assertEquals(['.'], $this->fixture->toPhp('{.}'));
-        $this->assertEquals(['string'], $this->fixture->toPhp('{string}'));
-        $this->assertEquals(['string1', ',', 'string3'], $this->fixture->toPhp('{string1,",",string3}'));
+        $this->assertSame(['',''], $this->fixture->toPhp('{,}'));
+        $this->assertSame(['','',null], $this->fixture->toPhp('{,,NULL}'));
+        $this->assertSame(['.'], $this->fixture->toPhp('{.}'));
+        $this->assertSame(['string'], $this->fixture->toPhp('{string}'));
+        $this->assertSame(['string1', ',', 'string3'], $this->fixture->toPhp('{string1,",",string3}'));
     }
 
     public function valuesProvider()
@@ -78,11 +79,13 @@ class ArrayConverterTest extends TestCase
         return [
             ['{}', []],
             ['{NULL}', [null]],
-            ['{0}', [0]],
-            ['{-1}', [-1]],
-            ['{1.5}', [1.5]],
+            ['{0}', [0], false],
+            ['{-1}', [-1], false],
+            ['{1.5}', [1.5], false],
             ['{""}', ['']],
-            ['{1,2,3}', [1,2,3]],
+            ['{"",""}', ['', '']],
+            ['{"","",NULL}', ['', '', null]],
+            ['{1,2,3}', [1,2,3], false],
             ['{"string1","str\\\\in\\"g2","str,ing3"}', ['string1','str\\in"g2','str,ing3']],
             ['{"null","NULL",NULL}', ['null','NULL',null]],
         ];
