@@ -35,8 +35,8 @@ class ColumnSchema extends \yii\db\ColumnSchema
     {
         if ($this->dimension > 0) {
             if (is_array($value)) {
-                array_walk_recursive($value, function (&$value, $key) {
-                    $value = $this->dbTypecastValue($value);
+                array_walk_recursive($value, function (&$val, $key) {
+                    $val = $this->dbTypecastValue($val);
                 });
             }
 
@@ -82,8 +82,8 @@ class ColumnSchema extends \yii\db\ColumnSchema
         if ($this->dimension > 0) {
             $value = $this->getArrayConverter()->toPhp($value);
             if (is_array($value)) {
-                array_walk_recursive($value, function (&$value, $key) {
-                    $value = $this->phpTypecastValue($value);
+                array_walk_recursive($value, function (&$val, $key) {
+                    $val = $this->phpTypecastValue($val);
                 });
             }
 
