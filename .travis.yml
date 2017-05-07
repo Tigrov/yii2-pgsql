@@ -26,6 +26,7 @@ install:
   - travis_retry composer global require "fxp/composer-asset-plugin:^1.3.1"
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - travis_retry composer install --prefer-dist --no-interaction
+  - travis_retry wget https://github.com/satooshi/php-coveralls/releases/download/v1.0.1/coveralls.phar
 
 after_script:
-  - travis_retry coveralls -v
+  - travis_retry php coveralls.phar -v
