@@ -35,23 +35,30 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
         }
         $names = [];
         $placeholders = [];
-        foreach ($columns as $name => $value) {
-            $names[] = $schema->quoteColumnName($name);
-            if ($value instanceof Expression) {
-                $placeholders[] = $value->expression;
-                foreach ($value->params as $n => $v) {
-                    $params[$n] = $v;
+        $values = ' DEFAULT VALUES';
+        if ($columns instanceof \yii\db\Query) {
+            list($names, $values, $params) = $this->prepareInsertSelectSubQuery($columns, $schema);
+        } else {
+            foreach ($columns as $name => $value) {
+                $names[] = $schema->quoteColumnName($name);
+                if ($value instanceof Expression) {
+                    $placeholders[] = $value->expression;
+                    foreach ($value->params as $n => $v) {
+                        $params[$n] = $v;
+                    }
+                } elseif ($value instanceof \yii\db\Query) {
+                    list($sql, $params) = $this->build($value, $params);
+                    $placeholders[] = "($sql)";
+                } else {
+                    $phName = self::PARAM_PREFIX . count($params);
+                    $placeholders[] = $phName;
+                    $params[$phName] = isset($columnSchemas[$name]) ? $columnSchemas[$name]->dbTypecast($value) : $value;
                 }
-            } else {
-                $phName = self::PARAM_PREFIX . count($params);
-                $placeholders[] = $phName;
-                $params[$phName] = isset($columnSchemas[$name]) ? $columnSchemas[$name]->dbTypecast($value) : $value;
             }
         }
-
         return 'INSERT INTO ' . $schema->quoteTableName($table)
-        . (!empty($names) ? ' (' . implode(', ', $names) . ')' : '')
-        . (!empty($placeholders) ? ' VALUES (' . implode(', ', $placeholders) . ')' : ' DEFAULT VALUES');
+            . (!empty($names) ? ' (' . implode(', ', $names) . ')' : '')
+            . (!empty($placeholders) ? ' VALUES (' . implode(', ', $placeholders) . ')' : $values);
     }
 
     /**
@@ -64,7 +71,6 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
         } else {
             $columnSchemas = [];
         }
-
         $lines = [];
         foreach ($columns as $name => $value) {
             if ($value instanceof Expression) {
@@ -78,10 +84,8 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
                 $params[$phName] = isset($columnSchemas[$name]) ? $columnSchemas[$name]->dbTypecast($value) : $value;
             }
         }
-
         $sql = 'UPDATE ' . $this->db->quoteTableName($table) . ' SET ' . implode(', ', $lines);
         $where = $this->buildWhere($condition, $params);
-
         return $where === '' ? $sql : $sql . ' ' . $where;
     }
 
@@ -90,6 +94,10 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
      */
     public function batchInsert($table, $columns, $rows)
     {
+        if (empty($rows)) {
+            return '';
+        }
+
         $schema = $this->db->getSchema();
         if (($tableSchema = $schema->getTableSchema($table)) !== null) {
             $columnSchemas = $tableSchema->columns;
@@ -116,6 +124,9 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
                 $vs[] = $value;
             }
             $values[] = '(' . implode(', ', $vs) . ')';
+        }
+        if (empty($values)) {
+            return '';
         }
 
         foreach ($columns as $i => $name) {
