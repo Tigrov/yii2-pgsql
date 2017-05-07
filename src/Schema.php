@@ -122,11 +122,9 @@ SQL;
                 }
                 $column->defaultValue = null;
             } elseif ($column->defaultValue) {
-                if ($column->type === 'timestamp' && $column->defaultValue === 'now()') {
+                if (in_array($column->type, [static::TYPE_TIMESTAMP, static::TYPE_DATETIME, static::TYPE_DATE, static::TYPE_TIME]) && $column->defaultValue === 'now()') {
                     $column->defaultValue = new \DateTime;
-                } elseif ($column->type === 'boolean') {
-                    $column->defaultValue = ($column->defaultValue === 'true');
-                } elseif (stripos($column->dbType, 'bit') === 0 || stripos($column->dbType, 'varbit') === 0) {
+                } elseif ($column->type === static::TYPE_BIT && !$column->dimension) {
                     $column->defaultValue = bindec(trim($column->defaultValue, 'B\''));
                 } elseif (preg_match("/^'(.*?)'::/", $column->defaultValue, $matches)) {
                     $column->defaultValue = $column->phpTypecast($matches[1]);
