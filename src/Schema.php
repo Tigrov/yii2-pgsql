@@ -59,7 +59,6 @@ SELECT
     pg_catalog.col_description(c.oid, a.attnum) AS column_comment,
     a.atttypmod AS modifier,
     a.attnotnull = false AS is_nullable,
-    a.atttypid,
     CAST(pg_get_expr(ad.adbin, ad.adrelid) AS varchar) AS column_default,
     coalesce(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval',false) AS is_autoinc,
     array_to_string((select array_agg(enumlabel) from pg_enum where enumtypid=(CASE WHEN t.typelem > 0 THEN t.typelem ELSE a.atttypid END))::varchar[],',') as enum_values,
@@ -113,6 +112,9 @@ SQL;
             return false;
         }
         foreach ($columns as $column) {
+            if ($this->db->slavePdo->getAttribute(\PDO::ATTR_CASE) === \PDO::CASE_UPPER) {
+                $column = array_change_key_case($column, CASE_LOWER);
+            }
             $column = $this->loadColumnSchema($column);
             $table->columns[$column->name] = $column;
             if ($column->isPrimaryKey) {
@@ -125,11 +127,15 @@ SQL;
                 if (in_array($column->type, [static::TYPE_TIMESTAMP, static::TYPE_DATETIME, static::TYPE_DATE, static::TYPE_TIME]) && $column->defaultValue === 'now()') {
                     $column->defaultValue = new \DateTime;
                 } elseif ($column->type === static::TYPE_BIT && !$column->dimension) {
-                    $column->defaultValue = bindec(trim($column->defaultValue, 'B\''));
+                    $column->defaultValue = $column->phpTypecast(trim($column->defaultValue, 'B\''));
                 } elseif (preg_match("/^'(.*?)'::/", $column->defaultValue, $matches)) {
                     $column->defaultValue = $column->phpTypecast($matches[1]);
-                } elseif (preg_match("/^(.*?)::/", $column->defaultValue, $matches)) {
-                    $column->defaultValue = $column->phpTypecast($matches[1]);
+                } elseif (preg_match('/^(?:\()?(.*?)(?(1)\))(?:::.+)?$/', $column->defaultValue, $matches)) {
+                    if ($matches[1] === 'NULL') {
+                        $column->defaultValue = null;
+                    } else {
+                        $column->defaultValue = $column->phpTypecast($matches[1]);
+                    }
                 } else {
                     $column->defaultValue = $column->phpTypecast($column->defaultValue);
                 }
