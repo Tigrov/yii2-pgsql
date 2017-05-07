@@ -16,7 +16,7 @@ class ArrayConverter extends \yii\base\Component
     /**
      * @var string the delimiter character to be used between values in arrays made of this type.
      */
-    public $delimiter;
+    public $delimiter = ',';
 
     /**
      * Convert array from PHP to PostgreSQL
