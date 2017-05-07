@@ -1,5 +1,6 @@
 .idea
 
+# composer
 /vendor
 /composer.lock
 
@@ -8,3 +9,7 @@ phpunit.phar
 /phpunit.xml
 /tests/runtime
 /tests/data/config.local.php
+
+# coveralls
+coveralls.phar
+/build
