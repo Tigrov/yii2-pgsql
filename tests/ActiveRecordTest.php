@@ -94,6 +94,42 @@ class ActiveRecordTest extends TestCase
         $this->$assertMethod($value, $newModel->$attribute);
     }
 
+    public function testDefaults()
+    {
+        $model = new Datatypes;
+        $model->loadDefaultValues();
+        // For default values see TestCase::createDatatypesTable()
+        $now = new \DateTime;
+        $this->assertLessThanOrEqual(1, static::convertIntervalToSeconds($now->diff($model->datetime)));
+        foreach ($model->datetimes as $datetime) {
+            $this->assertLessThanOrEqual(1, static::convertIntervalToSeconds($now->diff($datetime)));
+        }
+        $this->assertSame(1, $model->bit);
+        $this->assertSame(5, $model->varbit);
+        $this->assertSame([5], $model->bits);
+        $this->assertSame([''], $model->strings);
+        $this->assertSame([1, 2, 3], $model->integers);
+        $this->assertSame(['1.50', '-1.50'], $model->numerics);
+        $this->assertSame([-1.5], $model->doubles);
+        $this->assertSame([true, false, null], $model->booleans);
+        $this->assertSame([], $model->json);
+        $this->assertSame(true, $model->boolean);
+    }
+
+    public function testPhpTypes()
+    {
+        $json = Datatypes::getTableSchema()->getColumn('json');
+        $varbit = Datatypes::getTableSchema()->getColumn('varbit');
+
+        $this->assertSame('array', $json->phpType);
+        $this->assertSame('integer', $varbit->phpType);
+    }
+
+    public static function convertIntervalToSeconds($interval)
+    {
+        return (new \DateTime)->add($interval)->getTimestamp() - (new \DateTime)->getTimestamp();
+    }
+
     public function arrayValuesProvider()
     {
         return [
@@ -125,8 +161,10 @@ class ActiveRecordTest extends TestCase
             ['booleans', [true, false, null]],
             ['bit', 0],
             ['bit', 1],
-            ['bit', 8],
-            ['bit', 15],
+            ['varbit', 0],
+            ['varbit', 1],
+            ['varbit', 8],
+            ['varbit', 15],
             ['bits', [0]],
             ['bits', [1]],
             ['bits', [8, 15, null]],

@@ -4,21 +4,18 @@ namespace tigrov\tests\unit\pgsql;
 
 use tigrov\pgsql\ColumnSchema;
 
-/**
- * Type Schema::TYPE_DATETIME (datetime) never used, but it has mentioned in yii\db\pgsql\QueryBuilder::$typeMap
- */
-class ColumnSchemaDatetimeTest extends ColumnSchemaTimestampTest
+class ColumnSchemaDateTest extends AbstractColumnSchemaTest
 {
     protected function setUp()
     {
         parent::setUp();
 
         $this->fixture = new ColumnSchema([
-            'name' => 'datetime',
+            'name' => 'date',
             'allowNull' => true,
-            'type' => 'datetime',
+            'type' => 'date',
             'phpType' => 'string',
-            'dbType' => 'timestamp',
+            'dbType' => 'date',
             'defaultValue' => NULL,
             'enumValues' => NULL,
             'size' => NULL,
@@ -32,5 +29,19 @@ class ColumnSchemaDatetimeTest extends ColumnSchemaTimestampTest
         ]);
 
         $this->mockApplication();
+    }
+
+    public function valuesProvider()
+    {
+        return [
+            ['1901-01-01', new \DateTime('1901-01-01'), false],
+            ['2017-05-02', new \DateTime('2017-05-02'), false],
+        ];
+    }
+
+    public function testAdditionalDbTypecast()
+    {
+        $this->assertEquals('2017-05-02', $this->fixture->dbTypecast('2017-05-02'));
+        $this->assertEquals('2017-05-02', $this->fixture->dbTypecast(1493747432));
     }
 }

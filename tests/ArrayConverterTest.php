@@ -65,8 +65,14 @@ class ArrayConverterTest extends TestCase
         $this->$assertMethod($expected, $this->fixture->toPhp($value));
     }
 
+    public function testAdditionalToDb()
+    {
+        $this->assertNull($this->fixture->toDb(''));
+    }
+
     public function testAdditionalToPhp()
     {
+        $this->assertNull($this->fixture->toPhp(''));
         $this->assertSame(['',''], $this->fixture->toPhp('{,}'));
         $this->assertSame(['','',null], $this->fixture->toPhp('{,,NULL}'));
         $this->assertSame(['.'], $this->fixture->toPhp('{.}'));
@@ -88,6 +94,14 @@ class ArrayConverterTest extends TestCase
             ['{1,2,3}', [1,2,3], false],
             ['{"string1","str\\\\in\\"g2","str,ing3"}', ['string1','str\\in"g2','str,ing3']],
             ['{"null","NULL",NULL}', ['null','NULL',null]],
+
+            // Multidimensional arrays
+            ['{{NULL}}', [[null]]],
+            ['{{0}}', [[0]], false],
+            ['{{""}}', [['']]],
+            ['{{"",""},{"",""}}', [['', ''], ['', '']]],
+            ['{{1,2,3},{4,5,6},{7,8,9}}', [[1,2,3], [4,5,6], [7,8,9]], false],
+            ['{{{1},{2},{3}},{{4},{5},{6}},{{7},{8},{9}}}', [[[1],[2],[3]], [[4],[5],[6]], [[7],[8],[9]]], false],
         ];
     }
 }

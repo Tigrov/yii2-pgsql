@@ -10,6 +10,8 @@ use yii\helpers\ArrayHelper;
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
+    const TABLENAME = 'datatypes';
+
     /**
      * Clean up after test.
      * By default the application created with [[mockApplication]] will be destroyed.
@@ -68,30 +70,30 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     {
         $db = \Yii::$app->getDb();
 
-        $table = 'datatypes';
         $columns = [
             'id' => 'pk',
-            'strings' => 'varchar[]',
-            'integers' => 'integer[]',
-            'numerics' => 'numeric(10,2)[]',
-            'doubles' => 'float8[]',
-            'booleans' => 'boolean[]',
-            'bit' => 'varbit',
-            'bits' => 'varbit[]',
-            'datetime' => 'timestamp',
-            'datetimes' => 'timestamp[]',
-            'json' => 'jsonb',
+            'strings' => 'varchar(100)[] DEFAULT \'{""}\'',
+            'integers' => 'integer[] DEFAULT \'{1,2,3}\'',
+            'numerics' => 'numeric(10,2)[] DEFAULT \'{"1.50","-1.50"}\'',
+            'doubles' => 'float8[] DEFAULT \'{-1.5}\'',
+            'booleans' => 'boolean[] DEFAULT \'{true,false,NULL}\'',
+            'bit' => 'bit DEFAULT \'B1\'',
+            'varbit' => 'varbit DEFAULT \'B101\'',
+            'bits' => 'varbit[] DEFAULT \'{101}\'',
+            'datetime' => 'timestamp DEFAULT now()',
+            'datetimes' => 'timestamp[] DEFAULT \'{now(),now()}\'',
+            'json' => 'jsonb DEFAULT \'[]\'',
+            'boolean' => 'boolean DEFAULT true',
         ];
 
-        if (null === $db->schema->getTableSchema($table)) {
-            $db->createCommand()->createTable($table, $columns)->execute();
-            $db->getSchema()->refreshTableSchema($table);
+        if (null === $db->schema->getTableSchema(static::TABLENAME)) {
+            $db->createCommand()->createTable(static::TABLENAME, $columns)->execute();
+            $db->getSchema()->refreshTableSchema(static::TABLENAME);
         }
     }
 
     protected function dropDatatypesTable()
     {
-        $table = 'datatypes';
-        \Yii::$app->getDb()->createCommand()->dropTable($table)->execute();
+        \Yii::$app->getDb()->createCommand()->dropTable(static::TABLENAME)->execute();
     }
 }
