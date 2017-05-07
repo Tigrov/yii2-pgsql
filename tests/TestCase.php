@@ -84,6 +84,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'datetimes' => 'timestamp[] DEFAULT \'{now(),now()}\'',
             'json' => 'jsonb DEFAULT \'[]\'',
             'boolean' => 'boolean DEFAULT true',
+            'smallint' => 'smallint DEFAULT 1::smallint',
         ];
 
         if (null === $db->schema->getTableSchema(static::TABLENAME)) {
