@@ -115,6 +115,7 @@ class ActiveRecordTest extends TestCase
         $this->assertSame([], $model->json);
         $this->assertSame(true, $model->boolean);
         $this->assertSame(1, $model->smallint);
+        $this->assertNull($model->timestamp);
     }
 
     public function testPhpTypes()
