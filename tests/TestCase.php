@@ -85,7 +85,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'json' => 'jsonb DEFAULT \'[]\'',
             'boolean' => 'boolean DEFAULT true',
             'smallint' => 'smallint DEFAULT 1::smallint',
-            'timestamp' => 'timestamp DEFAULT NULL::timestamp without time zone',
+            'timestamp' => 'timestamp DEFAULT NULL',
         ];
 
         if (null === $db->schema->getTableSchema(static::TABLENAME)) {
