@@ -35,7 +35,7 @@ php composer.phar require --prefer-dist tigrov/yii2-pgsql
 or add
 
 ```
-"tigrov/yii2-pgsql": "~1.0.0"
+"tigrov/yii2-pgsql": "~1.0"
 ```
 
 to the require section of your `composer.json` file.
