@@ -70,6 +70,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     {
         $db = \Yii::$app->getDb();
 
+        $moneyType = $db->schema->defaultSchema . '.money';
         $columns = [
             'id' => 'pk',
             'strings' => 'varchar(100)[] DEFAULT \'{""}\'',
@@ -86,9 +87,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'boolean' => 'boolean DEFAULT true',
             'smallint' => 'smallint DEFAULT 1::smallint',
             'timestamp' => 'timestamp DEFAULT NULL',
+            'price' => $moneyType . ' DEFAULT \'(1,USD)\'',
+            'prices' => $moneyType . '[] DEFAULT \'{"(1,USD)"}\'',
         ];
 
         if (null === $db->schema->getTableSchema(static::TABLENAME)) {
+            $db->createCommand('DROP TYPE IF EXISTS ' . $moneyType)->execute();
+            $db->createCommand("CREATE TYPE $moneyType AS (value numeric(19,4), currency_code char(3))")->execute();
             $db->createCommand()->createTable(static::TABLENAME, $columns)->execute();
             $db->getSchema()->refreshTableSchema(static::TABLENAME);
         }
@@ -96,6 +101,10 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 
     protected function dropDatatypesTable()
     {
-        \Yii::$app->getDb()->createCommand()->dropTable(static::TABLENAME)->execute();
+        $db = \Yii::$app->getDb();
+
+        $moneyType = $db->schema->defaultSchema . '.money';
+        $db->createCommand()->dropTable(static::TABLENAME)->execute();
+        $db->createCommand('DROP TYPE IF EXISTS ' . $moneyType)->execute();
     }
 }

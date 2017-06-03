@@ -6,34 +6,15 @@ use tigrov\pgsql\ArrayConverter;
 
 class ArrayConverterTest extends TestCase
 {
-    /**
-     * @var ArrayConverter
-     */
-    protected $fixture;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->fixture = new ArrayConverter(['delimiter' => ',']);
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-        $this->fixture = null;
-    }
-
     public function testNullToDb()
     {
-        $this->assertNull($this->fixture->toDb(null));
+        $this->assertNull(ArrayConverter::toDb(null));
     }
 
     public function testBooleanToDb()
     {
-        $this->assertSame('{false}', $this->fixture->toDb([false]));
-        $this->assertSame('{true}', $this->fixture->toDb([true]));
+        $this->assertSame('{false}', ArrayConverter::toDb([false]));
+        $this->assertSame('{true}', ArrayConverter::toDb([true]));
     }
 
     /**
@@ -41,19 +22,19 @@ class ArrayConverterTest extends TestCase
      */
     public function testToDb($expected, $value, $isSame = true)
     {
-        $this->assertSame($expected, $this->fixture->toDb($value));
+        $this->assertSame($expected, ArrayConverter::toDb($value));
     }
 
     public function testNullToPhp()
     {
-        $this->assertNull($this->fixture->toPhp(null));
+        $this->assertNull(ArrayConverter::toPhp(null));
     }
 
     public function testBooleanToPhp()
     {
         // Typecasting for boolean type realized in ColumnSchema
-        $this->assertSame(['f'], $this->fixture->toPhp('{f}'));
-        $this->assertSame(['t'], $this->fixture->toPhp('{t}'));
+        $this->assertSame(['f'], ArrayConverter::toPhp('{f}'));
+        $this->assertSame(['t'], ArrayConverter::toPhp('{t}'));
     }
 
     /**
@@ -62,22 +43,22 @@ class ArrayConverterTest extends TestCase
     public function testToPhp($value, $expected, $isSame = true)
     {
         $assertMethod = $isSame ? 'assertSame' : 'assertEquals';
-        $this->$assertMethod($expected, $this->fixture->toPhp($value));
+        $this->$assertMethod($expected, ArrayConverter::toPhp($value));
     }
 
     public function testAdditionalToDb()
     {
-        $this->assertNull($this->fixture->toDb(''));
+        $this->assertNull(ArrayConverter::toDb(''));
     }
 
     public function testAdditionalToPhp()
     {
-        $this->assertNull($this->fixture->toPhp(''));
-        $this->assertSame(['',''], $this->fixture->toPhp('{,}'));
-        $this->assertSame(['','',null], $this->fixture->toPhp('{,,NULL}'));
-        $this->assertSame(['.'], $this->fixture->toPhp('{.}'));
-        $this->assertSame(['string'], $this->fixture->toPhp('{string}'));
-        $this->assertSame(['string1', ',', 'string3'], $this->fixture->toPhp('{string1,",",string3}'));
+        $this->assertNull(ArrayConverter::toPhp(''));
+        $this->assertSame([null,null], ArrayConverter::toPhp('{,}'));
+        $this->assertSame([null,null,null], ArrayConverter::toPhp('{,,NULL}'));
+        $this->assertSame(['.'], ArrayConverter::toPhp('{.}'));
+        $this->assertSame(['string'], ArrayConverter::toPhp('{string}'));
+        $this->assertSame(['string1', ',', 'string3'], ArrayConverter::toPhp('{string1,",",string3}'));
     }
 
     public function valuesProvider()

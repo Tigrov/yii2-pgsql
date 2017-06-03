@@ -7,6 +7,7 @@
 namespace tigrov\pgsql;
 
 use Yii;
+use yii\db\TableSchema;
 
 /**
  * Schema is the improved class for retrieving metadata from a PostgreSQL database
@@ -18,6 +19,7 @@ class Schema extends \yii\db\pgsql\Schema
 {
     const TYPE_BIT = 'bit';
     const TYPE_JSON = 'json';
+    const TYPE_COMPOSITE = 'composite';
 
     public function init()
     {
@@ -55,6 +57,7 @@ SELECT
     a.attndims AS array_dimension,
     t.typdelim AS delimiter,
     COALESCE(te.typname, t.typname) AS data_type,
+    COALESCE(te.typtype, t.typtype) AS type_type,
     a.attlen AS character_maximum_length,
     pg_catalog.col_description(c.oid, a.attnum) AS column_comment,
     a.atttypmod AS modifier,
@@ -159,6 +162,16 @@ SQL;
         $column->dimension = (int) $info['array_dimension'];
         $column->delimiter = $info['delimiter'];
 
+        // is b for a base type, c for a composite type (e.g., a table's row type), d for a domain, e for an enum type, p for a pseudo-type, or r for a range type.
+        if ($info['type_type'] == 'c') {
+            $column->type = self::TYPE_COMPOSITE;
+            $compositTable = new TableSchema();
+            $this->resolveTableNames($compositTable, $column->dbType);
+            if ($this->findColumns($compositTable)) {
+                $column->columns = $compositTable->columns;
+            }
+        }
+
         return $column;
     }
 
@@ -180,6 +193,7 @@ SQL;
             // abstract type => php type
             self::TYPE_BIT => 'integer',
             self::TYPE_JSON => 'array',
+            self::TYPE_COMPOSITE => 'array',
         ];
 
         if (isset($typeMap[$column->type])) {

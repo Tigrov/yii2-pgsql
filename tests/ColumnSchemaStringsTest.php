@@ -42,9 +42,9 @@ class ColumnSchemaStringsTest extends AbstractColumnSchemaArrayTest
 
     public function testAdditionalPhpTypecast()
     {
-        $this->assertSame(['', ''], $this->fixture->phpTypecast('{,}'));
+        $this->assertSame([null, null], $this->fixture->phpTypecast('{,}'));
         $this->assertSame(['.'], $this->fixture->phpTypecast('{.}'));
-        $this->assertSame(['', '', null], $this->fixture->phpTypecast('{,,NULL}'));
+        $this->assertSame([null, null, null], $this->fixture->phpTypecast('{,,NULL}'));
         $this->assertSame(['string'], $this->fixture->phpTypecast('{string}'));
         $this->assertSame(['string1', ',', 'string3'], $this->fixture->phpTypecast('{string1,",",string3}'));
     }

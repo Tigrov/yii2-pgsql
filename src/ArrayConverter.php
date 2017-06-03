@@ -14,120 +14,145 @@ namespace tigrov\pgsql;
 class ArrayConverter extends \yii\base\Component
 {
     /**
-     * @var string the delimiter character to be used between values in arrays made of this type.
-     */
-    public $delimiter = ',';
-
-    /**
      * Convert array from PHP to PostgreSQL
      *
-     * @param $value
+     * @param array $value array to be converted
+     * @param string $delimiter the character to be used between values in arrays
      * @return null|string
      */
-    public function toDb($value)
+    public static function toDb($value, $delimiter = ',', $isComposite = false)
     {
         if (!is_array($value)) {
             return null;
         }
 
         if (!$value) {
-            return '{}';
+            return $isComposite ? '()' : '{}';
         }
 
-        return $this->arrayToString($value);
+        return static::arrayToString($value, $delimiter, $isComposite);
+    }
+
+    /**
+     * Convert composite type from PHP to PostgreSQL
+     *
+     * @param array $value array to be converted
+     * @return null|string
+     */
+    public static function compositeToDb($value)
+    {
+        return static::toDb($value, ',', true);
     }
 
     /**
      * Convert array from PostgreSQL to PHP
      *
-     * @param $value
+     * @param string $value string to be converted
+     * @param string $delimiter the character to be used between values in arrays
      * @return array|null
      */
-    public function toPhp($value)
+    public static function toPhp($value, $delimiter = ',', $isComposite = false)
     {
         if (!$value) {
             return null;
         }
 
-        if ($value == '{}') {
+        if ($isComposite) {
+            if ($value == '()') {
+                return [null];
+            }
+        } elseif ($value == '{}') {
             return [];
         }
 
         $pos = 0;
-        return $this->parseArray($value, $pos);
+        return static::parseArray($value, $delimiter, $pos, $isComposite);
     }
 
-    public function arrayToString($list)
+    /**
+     * Convert composite type from PostgreSQL to PHP
+     *
+     * @param string $value string to be converted
+     * @return array|null
+     */
+    public static function compositeToPhp($value)
     {
-        $result = [];
+        return static::toPhp($value, ',', true);
+    }
+
+    protected static function arrayToString($list, $delimiter, $isComposite = false)
+    {
+        $strings = [];
         foreach ($list as $value) {
-            $result[] = $this->valueToString($value);
+            $strings[] = static::valueToString($value, $delimiter, $isComposite);
         }
 
-        return '{' . implode($this->delimiter, $result) . '}';
+        $result = implode($delimiter, $strings);
+
+        return $isComposite
+            ? '(' . $result . ')'
+            : '{' . $result . '}';
     }
 
-    public function valueToString($value)
+    protected static function valueToString($value, $delimiter, $isComposite)
     {
         if (is_array($value)) {
-            return $this->arrayToString($value);
+            return static::arrayToString($value, $delimiter);
         } elseif (is_string($value)) {
             return '"' . addcslashes($value, '"\\') . '"';
         } elseif (is_bool($value)) {
             return $value ? 'true' : 'false';
-        } elseif ($value === null) {
+        } elseif ($value === null && !$isComposite) {
             return 'NULL';
         }
 
         return $value;
     }
 
-    public function parseArray($value, &$i)
+    protected static function parseArray($value, $delimiter, &$i, $isComposite = false)
     {
+        $tEnd = $isComposite ? ')' : '}';
         $result = [];
         for(++$i; $i < strlen($value); ++$i) {
             switch ($value[$i]) {
-                case '}':
+                case $tEnd:
                     break 2;
-                case $this->delimiter:
+                case $delimiter:
                     if (!$result) {
-                        $result[] = '';
+                        $result[] = null;
                     }
-                    if (in_array($value[$i + 1], [$this->delimiter, '}'])) {
-                        $result[] = '';
+                    if (in_array($value[$i + 1], [$delimiter, $tEnd])) {
+                        $result[] = null;
                     }
                     break;
                 case '{':
-                    $result[] = $this->parseArray($value, $i);
-                    break;
-                case '"':
-                    $result[] = $this->parseString($value, $i, 1);
+                    $result[] = static::parseArray($value, $delimiter, $i);
                     break;
                 default:
-                    $result[] = $this->parseString($value, $i);
+                    $result[] = static::parseString($value, $delimiter, $tEnd, $i, $value[$i] == '"', $isComposite);
             }
         }
 
         return $result;
     }
 
-    public function parseString($value, &$i, $quoted = 0)
+    protected static function parseString($value, $delimiter, $tEnd, &$i, $isQuoted = false, $isComposite = false)
     {
-        $ends = $quoted ? ['"'] : [$this->delimiter, '}'];
+        $ends = $isQuoted ? ['"'] : [$delimiter, $tEnd];
         $result = '';
-        for ($i += $quoted; $i < strlen($value); ++$i) {
-            if (in_array($value[$i], $ends)) {
-                break;
-            } elseif ($value[$i] == '\\' && in_array($value[$i + 1], ['\\', '"'])) {
+        for ($i += $isQuoted ? 1 : 0; $i < strlen($value); ++$i) {
+            if (in_array($value[$i], ['\\', '"']) && in_array($value[$i + 1], [$value[$i], '"'])) {
                 ++$i;
+            } elseif (in_array($value[$i], $ends)) {
+                break;
             }
 
             $result .= $value[$i];
         }
 
-        $i += $quoted - 1;
+        $i -= $isQuoted ? 0 : 1;
 
-        if (!$quoted && $result === 'NULL') {
+        if (!$isQuoted && !$isComposite && $result === 'NULL') {
             $result = null;
         }
 

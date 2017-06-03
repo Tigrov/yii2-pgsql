@@ -24,9 +24,9 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public $delimiter;
 
     /**
-     * @var ArrayConverter object for converting array values.
+     * @var ColumnSchema[]|null columns of composite type
      */
-    private $_arrayConverter;
+    public $columns;
 
     /**
      * @inheritdoc
@@ -34,16 +34,29 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public function dbTypecast($value)
     {
         if ($this->dimension > 0) {
-            if (is_array($value)) {
-                array_walk_recursive($value, function (&$val, $key) {
-                    $val = $this->dbTypecastValue($val);
-                });
-            }
+            $value = $this->dbTypecastArrayValues($value, $this->dimension - 1);
 
-            return $this->getArrayConverter()->toDb($value);
+            return ArrayConverter::toDb($value, $this->delimiter);
         }
 
         return $this->dbTypecastValue($value);
+    }
+
+    public function dbTypecastArrayValues($value, $dimension)
+    {
+        if (is_array($value)) {
+            if ($dimension > 0) {
+                foreach ($value as $key => $val) {
+                    $value[$key] = $this->dbTypecastArrayValues($val, $dimension - 1);
+                }
+            } else {
+                foreach ($value as $key => $val) {
+                    $value[$key] = $this->dbTypecastValue($val);
+                }
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -69,9 +82,25 @@ class ColumnSchema extends \yii\db\ColumnSchema
                 return \Yii::$app->formatter->asDate($value, 'yyyy-MM-dd');
             case Schema::TYPE_TIME:
                 return \Yii::$app->formatter->asTime($value, 'HH:mm:ss');
+            case Schema::TYPE_COMPOSITE:
+                return $this->dbTypecastComposite($value);
         }
 
         return parent::dbTypecast($value);
+    }
+
+    public function dbTypecastComposite($value)
+    {
+        if (is_array($value)) {
+            $keys = array_keys($this->columns);
+            foreach ($value as $i => $val) {
+                $key = is_int($i) ? $keys[$i] : $i;
+                $column = $this->columns[$key];
+                $value[$i] = $column->dbTypecast($val);
+            }
+        }
+
+        return ArrayConverter::compositeToDb($value);
     }
 
     /**
@@ -80,7 +109,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public function phpTypecast($value)
     {
         if ($this->dimension > 0) {
-            $value = $this->getArrayConverter()->toPhp($value);
+            $value = ArrayConverter::toPhp($value, $this->delimiter);
             if (is_array($value)) {
                 array_walk_recursive($value, function (&$val, $key) {
                     $val = $this->phpTypecastValue($val);
@@ -124,24 +153,30 @@ class ColumnSchema extends \yii\db\ColumnSchema
             case Schema::TYPE_DATE:
             case Schema::TYPE_DATETIME:
                 return new \DateTime($value);
+            case Schema::TYPE_COMPOSITE:
+                return $this->phpTypecastComposite($value);
         }
 
         return parent::phpTypecast($value);
     }
 
-    /**
-     * Get or create an object of `ArrayConverter` class.
-     * @return ArrayConverter
-     */
-    public function getArrayConverter()
+    public function phpTypecastComposite($value)
     {
-        if ($this->_arrayConverter === null) {
-            $this->_arrayConverter = \Yii::createObject([
-                'class' => ArrayConverter::className(),
-                'delimiter' => $this->delimiter,
-            ]);
+        if (!is_array($value)) {
+            $value = ArrayConverter::compositeToPhp($value);
+        }
+        if (is_array($value)) {
+            $result = [];
+            $keys = array_keys($this->columns);
+            foreach ($value as $i => $val) {
+                $key = $keys[$i];
+                $column = $this->columns[$key];
+                $result[$key] = $column->phpTypecast($val);
+            }
+
+            return $result;
         }
 
-        return $this->_arrayConverter;
+        return $value;
     }
 }

@@ -60,6 +60,7 @@ class ActiveRecordTest extends TestCase
             'booleans',
             'bits',
             'datetimes',
+            'prices',
         ];
 
         $model = new Datatypes;
@@ -116,6 +117,8 @@ class ActiveRecordTest extends TestCase
         $this->assertSame(true, $model->boolean);
         $this->assertSame(1, $model->smallint);
         $this->assertNull($model->timestamp);
+        $this->assertSame(['value' => '1.0000', 'currency_code' => 'USD'], $model->price);
+        $this->assertSame([['value' => '1.0000', 'currency_code' => 'USD']], $model->prices);
     }
 
     public function testPhpTypes()
@@ -189,6 +192,9 @@ class ActiveRecordTest extends TestCase
             ['json', ['key' => 'value']],
             ['json', ['key1' => 'value1', 'key2' => true, 'key3' => false, 'key4' => '', 'key5' => null]],
             ['json', ['key' => ['key' => ['key' => 'value']]]],
+            ['price', ['value' => null, 'currency_code' => null]],
+            ['price', ['value' => '10.0000', 'currency_code' => 'USD']],
+            ['prices', [['value' => '10.0000', 'currency_code' => 'USD'], ['value' => '99.9999', 'currency_code' => 'EUR']]],
         ];
     }
 }
