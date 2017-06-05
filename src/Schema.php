@@ -21,6 +21,22 @@ class Schema extends \yii\db\pgsql\Schema
     const TYPE_JSON = 'json';
     const TYPE_COMPOSITE = 'composite';
 
+    /**
+     * @var array mapping from composite column types (keys) to PHP types (classes in configuration style).
+     * `array` by default, `object` also available as PHP type then a result will be converted to \stdClass.
+     * The result will be passed to the class constructor as an array.
+     * Example of the class constructor:
+     * ```php
+     * public function __construct($config = [])
+     * {
+     *     if (!empty($config)) {
+     *         \Yii::configure($this, $config);
+     *     }
+     * }
+     * ```
+     */
+    public $compositeMap = [];
+
     public function init()
     {
         $this->typeMap['bit'] = static::TYPE_BIT;
@@ -165,10 +181,18 @@ SQL;
         // is b for a base type, c for a composite type (e.g., a table's row type), d for a domain, e for an enum type, p for a pseudo-type, or r for a range type.
         if ($info['type_type'] == 'c') {
             $column->type = self::TYPE_COMPOSITE;
-            $compositTable = new TableSchema();
-            $this->resolveTableNames($compositTable, $column->dbType);
-            if ($this->findColumns($compositTable)) {
-                $column->columns = $compositTable->columns;
+            $column->phpType = 'array';
+
+            $composite = new TableSchema();
+            $this->resolveTableNames($composite, $column->dbType);
+            if ($this->findColumns($composite)) {
+                $column->columns = $composite->columns;
+            }
+
+            if (isset($this->compositeMap[$composite->schemaName . '.' . $composite->name])) {
+                $column->phpType = $this->compositeMap[$composite->schemaName . '.' . $composite->name];
+            } elseif (isset($this->compositeMap[$composite->name])) {
+                $column->phpType = $this->compositeMap[$composite->name];
             }
         }
 
@@ -193,7 +217,6 @@ SQL;
             // abstract type => php type
             self::TYPE_BIT => 'integer',
             self::TYPE_JSON => 'array',
-            self::TYPE_COMPOSITE => 'array',
         ];
 
         if (isset($typeMap[$column->type])) {

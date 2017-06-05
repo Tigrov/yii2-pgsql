@@ -64,7 +64,7 @@ class ColumnSchemaCompositeCompositeTest extends AbstractColumnSchemaTest
         'name' => 'composite_attr',
         'allowNull' => true,
         'type' => 'composite',
-        'phpType' => 'string',
+        'phpType' => 'array',
         'dbType' => 'composite',
         'defaultValue' => NULL,
         'enumValues' => NULL,

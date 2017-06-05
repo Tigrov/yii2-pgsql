@@ -6,6 +6,7 @@ Improved PostgreSQL schemas for Yii2.
 Supports follow types for ActiveRecord models:
 * `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * `json`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
+* `composite`, https://www.postgresql.org/docs/current/static/rowtypes.html
 * fixes type `bit`, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
 * converts Postgres types `timestamp`, `date` and `time` to PHP type `\DateTime` and vice versa.
 
@@ -118,6 +119,8 @@ $model->attribute1; // is array
 $model->attribute2; // is associative array (json)
 $model->attribute3; // is \DateTime
 ```
+
+[Composite types](docs/composite.md)
 
 License
 -------

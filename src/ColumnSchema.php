@@ -42,7 +42,13 @@ class ColumnSchema extends \yii\db\ColumnSchema
         return $this->dbTypecastValue($value);
     }
 
-    public function dbTypecastArrayValues($value, $dimension)
+    /**
+     * Converts array's values from PHP to PostgreSQL
+     * @param array|null $value the value to be converted
+     * @param integer $dimension the dimension of an array
+     * @return array
+     */
+    protected function dbTypecastArrayValues($value, $dimension)
     {
         if (is_array($value)) {
             if ($dimension > 0) {
@@ -83,21 +89,24 @@ class ColumnSchema extends \yii\db\ColumnSchema
             case Schema::TYPE_TIME:
                 return \Yii::$app->formatter->asTime($value, 'HH:mm:ss');
             case Schema::TYPE_COMPOSITE:
-                return $this->dbTypecastComposite($value);
+                return $this->dbTypecastComposite((array)$value);
         }
 
         return parent::dbTypecast($value);
     }
 
+    /**
+     * Convert the composite type from PHP to PostgreSQL
+     * @param array $value the value to be converted
+     * @return null|string
+     */
     public function dbTypecastComposite($value)
     {
-        if (is_array($value)) {
-            $keys = array_keys($this->columns);
-            foreach ($value as $i => $val) {
-                $key = is_int($i) ? $keys[$i] : $i;
-                $column = $this->columns[$key];
-                $value[$i] = $column->dbTypecast($val);
-            }
+        $keys = array_keys($this->columns);
+        foreach ($value as $i => $val) {
+            $key = is_int($i) ? $keys[$i] : $i;
+            $column = $this->columns[$key];
+            $value[$i] = $column->dbTypecast($val);
         }
 
         return ArrayConverter::compositeToDb($value);
@@ -160,6 +169,11 @@ class ColumnSchema extends \yii\db\ColumnSchema
         return parent::phpTypecast($value);
     }
 
+    /**
+     * Converts the composite type from PostgreSQL to PHP
+     * @param array|string|null $value the value to be converted
+     * @return array|null|object
+     */
     public function phpTypecastComposite($value)
     {
         if (!is_array($value)) {
@@ -174,9 +188,26 @@ class ColumnSchema extends \yii\db\ColumnSchema
                 $result[$key] = $column->phpTypecast($val);
             }
 
-            return $result;
+            return $this->createCompositeObject($result);
         }
 
         return $value;
+    }
+
+    /**
+     * Creates an object for the composite type.
+     * @param array $values to be passed to the class constructor
+     * @return mixed
+     */
+    protected function createCompositeObject($values)
+    {
+        switch ($this->phpType) {
+            case 'array':
+                return $values;
+            case 'object':
+                return (object)$values;
+        }
+
+        return \Yii::createObject($this->phpType, [$values]);
     }
 }
