@@ -77,10 +77,23 @@ class ActiveRecordCompositeTest extends TestCase
         $this->assertEquals([new Money(['value' => '1.0000', 'currency_code' => 'USD'])], $model->prices);
     }
 
+    public function testDomain()
+    {
+        $model = new Datatypes;
+        $model->price = [1,'USD'];
+        $this->assertTrue($model->save(false));
+
+        $model = new Datatypes;
+        $model->price = [1,'RRR']; // Unknown currency code
+
+        $this->expectException('\yii\db\IntegrityException');
+        $model->save(false);
+    }
+
     public function valuesProvider()
     {
         return [
-            [new Money(['value' => null, 'currency_code' => null])],
+            [new Money(['value' => null, 'currency_code' => 'EUR'])],
             [new Money(['value' => '10.0000', 'currency_code' => 'USD'])],
         ];
     }

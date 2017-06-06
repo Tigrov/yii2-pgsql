@@ -29,8 +29,9 @@ class ActiveRecordTest extends TestCase
     public function testNull()
     {
         $model = new Datatypes;
+        $columns = Datatypes::getTableSchema()->columns;
         foreach ($model->attributes() as $attribute) {
-            if ($attribute != 'id') {
+            if ($columns[$attribute]->allowNull) {
                 $model->$attribute = null;
             }
         }
@@ -41,7 +42,7 @@ class ActiveRecordTest extends TestCase
         $this->assertNotNull($newModel);
 
         foreach ($newModel->attributes() as $attribute) {
-            if ($attribute != 'id') {
+            if ($columns[$attribute]->allowNull) {
                 $this->assertNull($newModel->$attribute);
             }
         }
@@ -119,6 +120,7 @@ class ActiveRecordTest extends TestCase
         $this->assertNull($model->timestamp);
         $this->assertSame(['value' => '1.0000', 'currency_code' => 'USD'], $model->price);
         $this->assertSame([['value' => '1.0000', 'currency_code' => 'USD']], $model->prices);
+        $this->assertSame('USD', $model->currency_code);
     }
 
     public function testPhpTypes()
@@ -192,7 +194,7 @@ class ActiveRecordTest extends TestCase
             ['json', ['key' => 'value']],
             ['json', ['key1' => 'value1', 'key2' => true, 'key3' => false, 'key4' => '', 'key5' => null]],
             ['json', ['key' => ['key' => ['key' => 'value']]]],
-            ['price', ['value' => null, 'currency_code' => null]],
+            ['price', ['value' => null, 'currency_code' => 'EUR']],
             ['price', ['value' => '10.0000', 'currency_code' => 'USD']],
             ['prices', [['value' => '10.0000', 'currency_code' => 'USD'], ['value' => '99.9999', 'currency_code' => 'EUR']]],
         ];

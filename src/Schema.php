@@ -70,41 +70,48 @@ SELECT
     d.nspname AS table_schema,
     c.relname AS table_name,
     a.attname AS column_name,
-    a.attndims AS array_dimension,
-    t.typdelim AS delimiter,
-    COALESCE(te.typname, t.typname) AS data_type,
-    COALESCE(te.typtype, t.typtype) AS type_type,
+    COALESCE(NULLIF(a.attndims, 0), t.typndims) AS array_dimension,
+    CASE WHEN t.typndims > 0 
+        THEN tb.typdelim 
+        ELSE t.typdelim 
+    END AS delimiter,
+    COALESCE(td.typname, tb.typname, t.typname) AS data_type,
+    COALESCE(td.typtype, tb.typtype, t.typtype) AS type_type,
+    t.typname AS attr_type,
     a.attlen AS character_maximum_length,
     pg_catalog.col_description(c.oid, a.attnum) AS column_comment,
-    a.atttypmod AS modifier,
-    a.attnotnull = false AS is_nullable,
-    CAST(pg_get_expr(ad.adbin, ad.adrelid) AS varchar) AS column_default,
-    coalesce(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval',false) AS is_autoinc,
-    array_to_string((select array_agg(enumlabel) from pg_enum where enumtypid=(CASE WHEN t.typelem > 0 THEN t.typelem ELSE a.atttypid END))::varchar[],',') as enum_values,
-    CASE (CASE WHEN t.typelem > 0 THEN t.typelem ELSE a.atttypid END)
+    COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) AS modifier,
+    NOT (a.attnotnull OR t.typnotnull) AS is_nullable,
+    COALESCE(t.typdefault, CAST(pg_get_expr(ad.adbin, ad.adrelid) AS varchar)) AS column_default,
+    COALESCE(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval', false) AS is_autoinc,
+    CASE WHER COALESCE(td.typtype, tb.typtype, t.typtype) = 'e'::char
+        THEN array_to_string((SELECT array_agg(enumlabel) FROM pg_enum WHERE enumtypid = COALESCE(td.oid, tb.oid, a.atttypid))::varchar[], ',')
+        ELSE NULL
+    END AS enum_values,
+    CASE COALESCE(td.oid, tb.oid, a.atttypid)
          WHEN 21 /*int2*/ THEN 16
          WHEN 23 /*int4*/ THEN 32
          WHEN 20 /*int8*/ THEN 64
          WHEN 1700 /*numeric*/ THEN
-              CASE WHEN atttypmod = -1
-               THEN null
-               ELSE ((atttypmod - 4) >> 16) & 65535
-               END
+             CASE WHEN COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) = -1 
+                 THEN NULL
+                 ELSE ((COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) - 4) >> 16) & 65535
+             END
          WHEN 700 /*float4*/ THEN 24 /*FLT_MANT_DIG*/
          WHEN 701 /*float8*/ THEN 53 /*DBL_MANT_DIG*/
-         ELSE null
-      END   AS numeric_precision,
-      CASE (CASE WHEN t.typelem > 0 THEN t.typelem ELSE a.atttypid END)
+         ELSE NULL
+    END   AS numeric_precision,
+    CASE COALESCE(td.oid, tb.oid, a.atttypid)
         WHEN 21 THEN 0
         WHEN 23 THEN 0
         WHEN 20 THEN 0
         WHEN 1700 THEN
-        CASE
-            WHEN atttypmod = -1 THEN null
-            ELSE (atttypmod - 4) & 65535
-        END
-           ELSE null
-      END AS numeric_scale,
+            CASE WHEN COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) = -1 
+                THEN NULL
+                ELSE (COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) - 4) & 65535
+            END
+        ELSE NULL
+    END AS numeric_scale,
     CAST(
              information_schema._pg_char_max_length(information_schema._pg_truetypid(a, t), information_schema._pg_truetypmod(a, t))
              AS numeric
@@ -115,7 +122,8 @@ FROM
     LEFT JOIN pg_attribute a ON a.attrelid = c.oid
     LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
     LEFT JOIN pg_type t ON a.atttypid = t.oid
-    LEFT JOIN pg_type te ON t.typelem != 0 AND t.typelem = te.oid
+    LEFT JOIN pg_type tb ON a.attndims > 0 AND t.typelem > 0 AND t.typelem = tb.oid OR t.typbasetype > 0 AND t.typbasetype = tb.oid
+    LEFT JOIN pg_type td ON t.typndims > 0 AND t.typbasetype > 0 AND tb.typelem = td.oid
     LEFT JOIN pg_namespace d ON d.oid = c.relnamespace
     LEFT join pg_constraint ct on ct.conrelid=c.oid and ct.contype='p'
 WHERE
@@ -172,19 +180,20 @@ SQL;
     protected function loadColumnSchema($info)
     {
         $column = parent::loadColumnSchema($info);
+        $column->dbType = $info['attr_type'];
         if ($column->size === null && $info['modifier'] != -1 && !$column->scale) {
             $column->size = (int) $info['modifier'] - 4;
         }
         $column->dimension = (int) $info['array_dimension'];
         $column->delimiter = $info['delimiter'];
 
-        // is b for a base type, c for a composite type (e.g., a table's row type), d for a domain, e for an enum type, p for a pseudo-type, or r for a range type.
+        // b for a base type, c for a composite type, e for an enum type, p for a pseudo-type.
         if ($info['type_type'] == 'c') {
             $column->type = self::TYPE_COMPOSITE;
             $column->phpType = 'array';
 
             $composite = new TableSchema();
-            $this->resolveTableNames($composite, $column->dbType);
+            $this->resolveTableNames($composite, $info['data_type']);
             if ($this->findColumns($composite)) {
                 $column->columns = $composite->columns;
             }

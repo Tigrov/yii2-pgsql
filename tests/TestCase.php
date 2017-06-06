@@ -71,6 +71,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $db = \Yii::$app->getDb();
 
         $moneyType = $db->schema->defaultSchema . '.money';
+        $currencyType = $db->schema->defaultSchema . '.currency_code';
         $columns = [
             'id' => 'pk',
             'strings' => 'varchar(100)[] DEFAULT \'{""}\'',
@@ -89,11 +90,15 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'timestamp' => 'timestamp DEFAULT NULL',
             'price' => $moneyType . ' DEFAULT \'(1,USD)\'',
             'prices' => $moneyType . '[] DEFAULT \'{"(1,USD)"}\'',
+            'currency_code' => $currencyType,
         ];
 
         if (null === $db->schema->getTableSchema(static::TABLENAME)) {
             $db->createCommand('DROP TYPE IF EXISTS ' . $moneyType)->execute();
-            $db->createCommand("CREATE TYPE $moneyType AS (value numeric(19,4), currency_code char(3))")->execute();
+            $db->createCommand('DROP DOMAIN IF EXISTS ' . $currencyType)->execute();
+            $db->createCommand("CREATE DOMAIN $currencyType AS char(3) NOT NULL DEFAULT 'USD'
+	            CHECK (VALUE IN ('AED','AFN','ALL','AMD','ANG','AOA','ARS','AUD','AWG','AZN','BAM','BBD','BDT','BGN','BHD','BIF','BMD','BND','BOB','BRL','BSD','BTN','BWP','BYR','BZD','CAD','CDF','CHF','CLP','CNY','COP','CRC','CUC','CUP','CVE','CZK','DJF','DKK','DOP','DZD','EGP','ERN','ETB','EUR','FJD','FKP','GBP','GEL','GHS','GIP','GMD','GNF','GTQ','GYD','HKD','HNL','HRK','HTG','HUF','IDR','ILS','INR','IQD','IRR','ISK','JMD','JOD','JPY','KES','KGS','KHR','KMF','KPW','KRW','KWD','KYD','KZT','LAK','LBP','LKR','LRD','LSL','LYD','MAD','MDL','MGA','MKD','MMK','MNT','MOP','MRO','MUR','MVR','MWK','MXN','MYR','MZN','NAD','NGN','NIO','NOK','NPR','NZD','OMR','PAB','PEN','PGK','PHP','PKR','PLN','PYG','QAR','RON','RSD','RUB','RWF','SAR','SBD','SCR','SDG','SEK','SGD','SHP','SLL','SOS','SRD','SSP','STD','SVC','SYP','SZL','THB','TJS','TMT','TND','TOP','TRY','TTD','TWD','TZS','UAH','UGX','USD','UYU','UZS','VEF','VND','VUV','WST','XAF','XCD','XOF','XPF','YER','ZAR','ZMW'))")->execute();
+            $db->createCommand("CREATE TYPE $moneyType AS (value numeric(19,4), currency_code $currencyType)")->execute();
             $db->createCommand()->createTable(static::TABLENAME, $columns)->execute();
             $db->getSchema()->refreshTableSchema(static::TABLENAME);
         }
@@ -104,7 +109,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $db = \Yii::$app->getDb();
 
         $moneyType = $db->schema->defaultSchema . '.money';
+        $currencyType = $db->schema->defaultSchema . '.currency_code';
         $db->createCommand()->dropTable(static::TABLENAME)->execute();
         $db->createCommand('DROP TYPE IF EXISTS ' . $moneyType)->execute();
+        $db->createCommand('DROP DOMAIN IF EXISTS ' . $currencyType)->execute();
     }
 }
