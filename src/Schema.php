@@ -84,7 +84,7 @@ SELECT
     NOT (a.attnotnull OR t.typnotnull) AS is_nullable,
     COALESCE(t.typdefault, CAST(pg_get_expr(ad.adbin, ad.adrelid) AS varchar)) AS column_default,
     COALESCE(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval', false) AS is_autoinc,
-    CASE WHER COALESCE(td.typtype, tb.typtype, t.typtype) = 'e'::char
+    CASE WHEN COALESCE(td.typtype, tb.typtype, t.typtype) = 'e'::char
         THEN array_to_string((SELECT array_agg(enumlabel) FROM pg_enum WHERE enumtypid = COALESCE(td.oid, tb.oid, a.atttypid))::varchar[], ',')
         ELSE NULL
     END AS enum_values,
