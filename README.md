@@ -7,7 +7,7 @@ Supports follow types for ActiveRecord models:
 * `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * `json`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
 * [`composite`](docs/composite.md), https://www.postgresql.org/docs/current/static/rowtypes.html
-* `domain`, https://www.postgresql.org/docs/9.6/static/sql-createdomain.html
+* `domain`, https://www.postgresql.org/docs/current/static/sql-createdomain.html
 * fixes type `bit`, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
 * converts Postgres types `timestamp`, `date` and `time` to PHP type `\DateTime` and vice versa.
 
@@ -117,7 +117,7 @@ and then use them in your code
  */
 $model = Model::findOne($pk);
 $model->attribute1; // is array
-$model->attribute2; // is associative array (json)
+$model->attribute2; // is associative array (decoded json)
 $model->attribute3; // is \DateTime
 ```
 
