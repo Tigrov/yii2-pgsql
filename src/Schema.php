@@ -99,11 +99,11 @@ FROM
     LEFT JOIN pg_type tb ON a.attndims > 0 AND t.typelem > 0 AND t.typelem = tb.oid OR t.typbasetype > 0 AND t.typbasetype = tb.oid
     LEFT JOIN pg_type td ON t.typndims > 0 AND t.typbasetype > 0 AND tb.typelem = td.oid
     LEFT JOIN pg_namespace d ON d.oid = c.relnamespace
-    LEFT join pg_constraint ct on ct.conrelid=c.oid and ct.contype='p'
+    LEFT JOIN pg_constraint ct ON ct.conrelid = c.oid AND ct.contype = 'p'
 WHERE
-    a.attnum > 0 and t.typname != ''
-    and c.relname = {$tableName}
-    and d.nspname = {$schemaName}
+    a.attnum > 0 AND t.typname != ''
+    AND c.relname = {$tableName}
+    AND d.nspname = {$schemaName}
 ORDER BY
     a.attnum;
 SQL;
