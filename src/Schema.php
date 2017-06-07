@@ -75,6 +75,7 @@ SELECT
         THEN tb.typdelim 
         ELSE t.typdelim 
     END AS delimiter,
+    COALESCE(td.oid, tb.oid, a.atttypid) AS type_id,
     COALESCE(td.typname, tb.typname, t.typname) AS data_type,
     COALESCE(td.typtype, tb.typtype, t.typtype) AS type_type,
     t.typname AS attr_type,
@@ -88,35 +89,8 @@ SELECT
         THEN array_to_string((SELECT array_agg(enumlabel) FROM pg_enum WHERE enumtypid = COALESCE(td.oid, tb.oid, a.atttypid))::varchar[], ',')
         ELSE NULL
     END AS enum_values,
-    CASE COALESCE(td.oid, tb.oid, a.atttypid)
-         WHEN 21 /*int2*/ THEN 16
-         WHEN 23 /*int4*/ THEN 32
-         WHEN 20 /*int8*/ THEN 64
-         WHEN 1700 /*numeric*/ THEN
-             CASE WHEN COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) = -1 
-                 THEN NULL
-                 ELSE ((COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) - 4) >> 16) & 65535
-             END
-         WHEN 700 /*float4*/ THEN 24 /*FLT_MANT_DIG*/
-         WHEN 701 /*float8*/ THEN 53 /*DBL_MANT_DIG*/
-         ELSE NULL
-    END   AS numeric_precision,
-    CASE COALESCE(td.oid, tb.oid, a.atttypid)
-        WHEN 21 THEN 0
-        WHEN 23 THEN 0
-        WHEN 20 THEN 0
-        WHEN 1700 THEN
-            CASE WHEN COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) = -1 
-                THEN NULL
-                ELSE (COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) - 4) & 65535
-            END
-        ELSE NULL
-    END AS numeric_scale,
-    CAST(
-             information_schema._pg_char_max_length(information_schema._pg_truetypid(a, t), information_schema._pg_truetypmod(a, t))
-             AS numeric
-    ) AS size,
-    a.attnum = any (ct.conkey) as is_pkey
+    information_schema._pg_char_max_length(information_schema._pg_truetypid(a, t), information_schema._pg_truetypmod(a, t))::numeric AS size,
+    a.attnum = ANY (ct.conkey) AS is_pkey
 FROM
     pg_class c
     LEFT JOIN pg_attribute a ON a.attrelid = c.oid
@@ -179,6 +153,8 @@ SQL;
      */
     protected function loadColumnSchema($info)
     {
+        list($info['numeric_precision'], $info['numeric_scale']) = $this->getPrecisionScale($info['type_id'], $info['modifier']);
+
         $column = parent::loadColumnSchema($info);
         $column->dbType = $info['attr_type'];
         if ($column->size === null && $info['modifier'] != -1 && !$column->scale) {
@@ -233,5 +209,27 @@ SQL;
         }
 
         return parent::getColumnPhpType($column);
+    }
+
+    protected function getPrecisionScale($typeId, $modifier)
+    {
+        switch ($typeId) {
+            case 21: /*int2*/
+                return [16, 0];
+            case 23: /*int4*/
+                return [32, 0];
+            case 20: /*int8*/
+                return [64, 0];
+            case 700: /*float4*/
+                return [24, 0]; /*FLT_MANT_DIG*/
+            case 701: /*float8*/
+                return [53, null]; /*DBL_MANT_DIG*/
+            case 1700: /*numeric*/
+                return $modifier = -1
+                    ? [null, null]
+                    : [(($modifier - 4) >> 16) & 65535, ($modifier - 4) & 65535];
+        }
+
+        return [null, null];
     }
 }
