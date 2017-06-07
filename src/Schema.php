@@ -153,7 +153,7 @@ SQL;
      */
     protected function loadColumnSchema($info)
     {
-        list($info['numeric_precision'], $info['numeric_scale']) = $this->getPrecisionScale($info['type_id'], $info['modifier']);
+        list($info['numeric_precision'], $info['numeric_scale']) = $this->getPrecisionScale($info);
 
         $column = parent::loadColumnSchema($info);
         $column->dbType = $info['attr_type'];
@@ -211,9 +211,9 @@ SQL;
         return parent::getColumnPhpType($column);
     }
 
-    protected function getPrecisionScale($typeId, $modifier)
+    protected function getPrecisionScale($info)
     {
-        switch ($typeId) {
+        switch ($info['type_id']) {
             case 21: /*int2*/
                 return [16, 0];
             case 23: /*int4*/
@@ -225,9 +225,9 @@ SQL;
             case 701: /*float8*/
                 return [53, null]; /*DBL_MANT_DIG*/
             case 1700: /*numeric*/
-                return $modifier = -1
+                return $info['modifier'] = -1
                     ? [null, null]
-                    : [(($modifier - 4) >> 16) & 65535, ($modifier - 4) & 65535];
+                    : [(($info['modifier'] - 4) >> 16) & 65535, ($info['modifier'] - 4) & 65535];
         }
 
         return [null, null];
