@@ -19,7 +19,7 @@ return [
                     'class' => 'tigrov\pgsql\Schema',
                     // Mapping from composite column types (keys) to PHP types (classes in configuration style).
                     // `array` by default, `object` also available as PHP type then a result will be converted to \stdClass.
-                    // The result will be passed to the class constructor as an array.
+                    // The result will be passed to the class constructor as an associative array.
                     'compositeMap' => [
                         'currency_money' => Money::className(), // See example at /tests/data/Money.php
                     ],
