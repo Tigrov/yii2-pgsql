@@ -103,10 +103,16 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public function dbTypecastComposite($value)
     {
         $keys = array_keys($this->columns);
+
+        // TODO sort value in columns order (if $value is associative array)
+        // TODO add skipped values as default (e.g. if default is (0,USD) and $value is ['value' => 10] or [10] then should be converted as (10,USD))
+
         foreach ($value as $i => $val) {
             $key = is_int($i) ? $keys[$i] : $i;
-            $column = $this->columns[$key];
-            $value[$i] = $column->dbTypecast($val);
+            if (isset($this->columns[$key])) {
+                $column = $this->columns[$key];
+                $value[$i] = $column->dbTypecast($val);
+            }
         }
 
         return ArrayConverter::compositeToDb($value);
