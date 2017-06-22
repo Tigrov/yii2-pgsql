@@ -104,7 +104,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
     {
         $keys = array_keys($this->columns);
 
-        // TODO sort value in columns order (if $value is associative array)
+        // TODO sort value in columns order (if $value is an associative array)
         // TODO add skipped values as default (e.g. if default is (0,USD) and $value is ['value' => 10] or [10] then should be converted as (10,USD))
 
         foreach ($value as $i => $val) {
