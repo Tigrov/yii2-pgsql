@@ -6,6 +6,8 @@
 
 namespace tigrov\pgsql;
 
+use yii\base\Arrayable;
+
 /**
  * ColumnSchema is the improved class which describes the metadata of a column in a PostgreSQL database table
  *
@@ -89,7 +91,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
             case Schema::TYPE_TIME:
                 return \Yii::$app->formatter->asTime($value, 'HH:mm:ss');
             case Schema::TYPE_COMPOSITE:
-                return $this->dbTypecastComposite((array)$value);
+                return $this->dbTypecastComposite($value);
         }
 
         return parent::dbTypecast($value);
@@ -102,6 +104,10 @@ class ColumnSchema extends \yii\db\ColumnSchema
      */
     public function dbTypecastComposite($value)
     {
+        $value = $value instanceof Arrayable
+            ? $value->toArray()
+            : (array)$value;
+
         $keys = array_keys($this->columns);
 
         // TODO sort value in columns order (if $value is an associative array)

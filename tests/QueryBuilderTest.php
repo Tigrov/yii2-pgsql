@@ -13,9 +13,10 @@ class QueryBuilderTest extends TestCase
     {
         parent::setUp();
 
-        $config = ArrayHelper::merge(
-            require(__DIR__ . '/data/config.php'),
-            require(__DIR__ . '/data/config.local.php'));
+        $config = require(__DIR__ . '/data/config.php');
+        if (file_exists(__DIR__ . '/data/config.local.php')) {
+            $config = ArrayHelper::merge($config, require(__DIR__ . '/data/config.local.php'));
+        }
 
         $this->mockApplication($config);
         $this->createDatatypesTable();
