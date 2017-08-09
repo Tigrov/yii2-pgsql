@@ -70,7 +70,7 @@ SELECT
     d.nspname AS table_schema,
     c.relname AS table_name,
     a.attname AS column_name,
-    COALESCE(NULLIF(a.attndims, 0), t.typndims) AS array_dimension,
+    COALESCE(NULLIF(a.attndims, 0), NULLIF(t.typndims, 0), (t.typcategory='A')::int) AS array_dimension,
     CASE WHEN t.typndims > 0 
         THEN tb.typdelim 
         ELSE t.typdelim 
@@ -96,7 +96,7 @@ FROM
     LEFT JOIN pg_attribute a ON a.attrelid = c.oid
     LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
     LEFT JOIN pg_type t ON a.atttypid = t.oid
-    LEFT JOIN pg_type tb ON a.attndims > 0 AND t.typelem > 0 AND t.typelem = tb.oid OR t.typbasetype > 0 AND t.typbasetype = tb.oid
+    LEFT JOIN pg_type tb ON (a.attndims > 0 OR t.typcategory='A') AND t.typelem > 0 AND t.typelem = tb.oid OR t.typbasetype > 0 AND t.typbasetype = tb.oid
     LEFT JOIN pg_type td ON t.typndims > 0 AND t.typbasetype > 0 AND tb.typelem = td.oid
     LEFT JOIN pg_namespace d ON d.oid = c.relnamespace
     LEFT JOIN pg_constraint ct ON ct.conrelid = c.oid AND ct.contype = 'p'
