@@ -108,11 +108,11 @@ class ColumnSchema extends \yii\db\ColumnSchema
             ? $value->toArray()
             : (array)$value;
 
-        $keys = array_keys($this->columns);
+        $value = $this->sortCompositeValue($value);
 
-        // TODO sort value in columns order (if $value is an associative array)
         // TODO add skipped values as default (e.g. if default is (0,USD) and $value is ['value' => 10] or [10] then should be converted as (10,USD))
 
+        $keys = array_keys($this->columns);
         foreach ($value as $i => $val) {
             $key = is_int($i) ? $keys[$i] : $i;
             if (isset($this->columns[$key])) {
@@ -221,5 +221,28 @@ class ColumnSchema extends \yii\db\ColumnSchema
         }
 
         return \Yii::createObject($this->phpType, [$values]);
+    }
+
+    /**
+     * Sort a composite value in the order of the columns
+     * @param array $value the composite value
+     * @return array
+     */
+    protected function sortCompositeValue($value)
+    {
+        $keys = array_keys($this->columns);
+        $valueKeys = array_keys($value);
+        if ($keys != $valueKeys && count(array_filter($valueKeys, 'is_string'))) {
+            $list = [];
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $value)) {
+                    $list[$key] = $value[$key];
+                }
+            }
+
+            return $list;
+        }
+
+        return $value;
     }
 }

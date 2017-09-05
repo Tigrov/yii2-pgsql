@@ -77,6 +77,19 @@ class ActiveRecordCompositeTest extends TestCase
         $this->assertEquals([new Money(['value' => '1.0000', 'currency_code' => 'USD'])], $model->prices);
     }
 
+    public function testWrongOrder()
+    {
+        $price = ['currency_code' => 'USD', 'value' => '10.0000'];
+        $model = new Datatypes;
+        $model->price = $price;
+        $this->assertTrue($model->save(false));
+
+        $newModel = Datatypes::findOne($model->id);
+        $this->assertNotNull($newModel);
+
+        $this->assertEquals(new Money($price), $newModel->price);
+    }
+
     public function testDomain()
     {
         $model = new Datatypes;
