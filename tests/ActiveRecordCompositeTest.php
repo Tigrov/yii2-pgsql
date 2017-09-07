@@ -90,6 +90,19 @@ class ActiveRecordCompositeTest extends TestCase
         $this->assertEquals(new Money($price), $newModel->price);
     }
 
+    public function testSkippedValues()
+    {
+        $price = ['currency_code' => 'USD'];
+        $model = new Datatypes;
+        $model->price = $price;
+        $this->assertTrue($model->save(false));
+
+        $newModel = Datatypes::findOne($model->id);
+        $this->assertNotNull($newModel);
+
+        $this->assertEquals(new Money($price), $newModel->price);
+    }
+
     public function testDomain()
     {
         $model = new Datatypes;

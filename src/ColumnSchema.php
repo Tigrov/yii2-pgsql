@@ -108,7 +108,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
             ? $value->toArray()
             : (array)$value;
 
-        $value = $this->sortCompositeValue($value);
+        $value = $this->prepareCompositeValue($value);
 
         // TODO add skipped values as default (e.g. if default is (0,USD) and $value is ['value' => 10] or [10] then should be converted as (10,USD))
 
@@ -224,20 +224,18 @@ class ColumnSchema extends \yii\db\ColumnSchema
     }
 
     /**
-     * Sort a composite value in the order of the columns
+     * Sort a composite value in the order of the columns and append skipped values as null
      * @param array $value the composite value
      * @return array
      */
-    protected function sortCompositeValue($value)
+    protected function prepareCompositeValue($value)
     {
         $keys = array_keys($this->columns);
         $valueKeys = array_keys($value);
         if ($keys != $valueKeys && count(array_filter($valueKeys, 'is_string'))) {
             $list = [];
             foreach ($keys as $key) {
-                if (array_key_exists($key, $value)) {
-                    $list[$key] = $value[$key];
-                }
+                $list[$key] = array_key_exists($key, $value) ? $value[$key] : null;
             }
 
             return $list;
