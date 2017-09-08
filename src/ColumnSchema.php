@@ -211,7 +211,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
      * @param array $values to be passed to the class constructor
      * @return mixed
      */
-    protected function createCompositeObject($values)
+    public function createCompositeObject($values)
     {
         switch ($this->phpType) {
             case 'array':
