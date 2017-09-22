@@ -130,7 +130,9 @@ class ColumnSchema extends \yii\db\ColumnSchema
     public function phpTypecast($value)
     {
         if ($this->dimension > 0) {
-            $value = ArrayConverter::toPhp($value, $this->delimiter);
+            if (!is_array($value)) {
+                $value = ArrayConverter::toPhp($value, $this->delimiter);
+            }
             if (is_array($value)) {
                 array_walk_recursive($value, function (&$val, $key) {
                     $val = $this->phpTypecastValue($val);

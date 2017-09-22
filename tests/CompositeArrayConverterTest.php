@@ -58,6 +58,7 @@ class CompositeArrayConverterTest extends TestCase
         $this->assertSame(['.'], ArrayConverter::compositeToPhp('(.)'));
         $this->assertSame(['string'], ArrayConverter::compositeToPhp('(string)'));
         $this->assertSame(['string1', ',', 'string3'], ArrayConverter::compositeToPhp('(string1,",",string3)'));
+        $this->assertSame([['value']], ArrayConverter::compositeToPhp('({value})'));
     }
 
     public function valuesProvider()
