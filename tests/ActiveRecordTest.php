@@ -63,6 +63,7 @@ class ActiveRecordTest extends TestCase
             'bits',
             'datetimes',
             'prices',
+            'binaries',
         ];
 
         $model = new Datatypes;
@@ -94,7 +95,8 @@ class ActiveRecordTest extends TestCase
         $this->assertNotNull($newModel);
 
         $assertMethod = $isSame ? 'assertSame' : 'assertEquals';
-        $this->$assertMethod($value, $newModel->$attribute);
+        $attributeValue = is_resource($newModel->$attribute) ? stream_get_contents($newModel->$attribute) : $newModel->$attribute;
+        $this->$assertMethod($value, $attributeValue);
     }
 
     public function testDefaults()
@@ -122,6 +124,8 @@ class ActiveRecordTest extends TestCase
         $this->assertSame(['value' => '1.0000', 'currency_code' => 'USD'], $model->price);
         $this->assertSame([['value' => '1.0000', 'currency_code' => 'USD']], $model->prices);
         $this->assertSame('USD', $model->currency_code);
+        $this->assertSame('test', $model->binary);
+        $this->assertSame(['test'], $model->binaries);
     }
 
     public function testPhpTypes()
@@ -198,6 +202,8 @@ class ActiveRecordTest extends TestCase
             ['price', ['value' => null, 'currency_code' => 'EUR']],
             ['price', ['value' => '10.0000', 'currency_code' => 'USD']],
             ['prices', [['value' => '10.0000', 'currency_code' => 'USD'], ['value' => '99.9999', 'currency_code' => 'EUR']]],
+            ['binary', 'string'],
+            ['binaries', ['string']],
         ];
     }
 }

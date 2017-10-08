@@ -91,6 +91,8 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'price' => $moneyType . ' DEFAULT \'(1,USD)\'',
             'prices' => $moneyType . '[] DEFAULT \'{"(1,USD)"}\'',
             'currency_code' => $currencyType,
+            'binary' => 'bytea DEFAULT \'test\'::bytea',
+            'binaries' => 'bytea[] DEFAULT \'{test}\'::bytea[]',
         ];
 
         if (null === $db->schema->getTableSchema(static::TABLENAME)) {

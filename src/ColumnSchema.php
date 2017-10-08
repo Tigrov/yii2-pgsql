@@ -81,6 +81,8 @@ class ColumnSchema extends \yii\db\ColumnSchema
         switch ($this->type) {
             case Schema::TYPE_BIT:
                 return decbin($value);
+            case Schema::TYPE_BINARY:
+                return is_string($value) ? '\\x' . implode(unpack('H*', $value)) : $value;
             case Schema::TYPE_JSON:
                 return json_encode($value);
             case Schema::TYPE_TIMESTAMP:
@@ -169,6 +171,8 @@ class ColumnSchema extends \yii\db\ColumnSchema
                 return (bool) $value;
             case Schema::TYPE_BIT:
                 return bindec($value);
+            case Schema::TYPE_BINARY:
+                return is_string($value) && strncmp($value, '\\x', 2) === 0 ? pack('H*', substr($value, 2)) : $value;
             case Schema::TYPE_JSON:
                 return json_decode($value, true);
             case Schema::TYPE_TIMESTAMP:
