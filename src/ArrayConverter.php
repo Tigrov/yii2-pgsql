@@ -11,7 +11,7 @@ namespace tigrov\pgsql;
  *
  * @author Sergei Tigrov <rrr-r@ya.ru>
  */
-class ArrayConverter extends \yii\base\Component
+class ArrayConverter
 {
     /**
      * Convert array from PHP to PostgreSQL
