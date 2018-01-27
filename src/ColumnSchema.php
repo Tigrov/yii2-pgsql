@@ -101,18 +101,13 @@ class ColumnSchema extends \yii\db\ColumnSchema
 
     /**
      * Convert the composite type from PHP to PostgreSQL
-     * @param array $value the value to be converted
+     * @param array|object $value the value to be converted
      * @return null|string
      */
     public function dbTypecastComposite($value)
     {
-        $value = $value instanceof Arrayable
-            ? $value->toArray()
-            : (array)$value;
-
+        $value = $this->toArray($value);
         $value = $this->prepareCompositeValue($value);
-
-        // TODO add skipped values as default (e.g. if default is (0,USD) and $value is ['value' => 10] or [10] then should be converted as (10,USD))
 
         $keys = array_keys($this->columns);
         foreach ($value as $i => $val) {
@@ -230,7 +225,9 @@ class ColumnSchema extends \yii\db\ColumnSchema
     }
 
     /**
-     * Sort a composite value in the order of the columns and append skipped values as null
+     * Sort a composite value in the order of the columns and append skipped values as default value
+     * e.g. if default is (0,USD) and $value is ['value' => 10] or [10]
+     * then will be converted as ['value' => 10, 'currency_code' => 'USD']
      * @param array $value the composite value
      * @return array
      */
@@ -238,15 +235,35 @@ class ColumnSchema extends \yii\db\ColumnSchema
     {
         $keys = array_keys($this->columns);
         $valueKeys = array_keys($value);
-        if ($keys != $valueKeys && count(array_filter($valueKeys, 'is_string'))) {
-            $list = [];
-            foreach ($keys as $key) {
-                $list[$key] = array_key_exists($key, $value) ? $value[$key] : null;
-            }
+        if ($keys !== $valueKeys) {
+            $defaultValue = $this->defaultValue !== null ? $this->toArray($this->defaultValue) : [];
+            if (count(array_filter($valueKeys, 'is_string'))) {
+                $list = [];
+                foreach ($keys as $key) {
+                    $list[$key] = array_key_exists($key, $value) ? $value[$key] : (isset($defaultValue[$key]) ? $defaultValue[$key] : null);
+                }
 
-            return $list;
+                return $list;
+            } elseif (count($valueKeys) < count($keys)) {
+                $skippedKeys = array_slice($keys, count($valueKeys));
+                foreach ($skippedKeys as $key) {
+                    array_push($value, (isset($defaultValue[$key]) ? $defaultValue[$key] : null));
+                }
+            }
         }
 
         return $value;
+    }
+
+    /**
+     * Convert object to array
+     * @param array|object $value the value to be converted
+     * @return array
+     */
+    protected function toArray($value)
+    {
+        return $value instanceof Arrayable
+            ? $value->toArray()
+            : (array)$value;
     }
 }
