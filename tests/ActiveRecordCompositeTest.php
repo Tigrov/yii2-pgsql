@@ -119,11 +119,11 @@ class ActiveRecordCompositeTest extends TestCase
         $model->save(false);
     }
 
-    public function testToCompositeType()
+    public function testToCompositeObject()
     {
         $column = Datatypes::getTableSchema()->columns['price'];
-        $this->assertEquals(new Money(['value' => 1, 'currency_code' => 'USD']), $column->toCompositeType([1,'USD']));
-        $this->assertEquals(new Money(['value' => 1, 'currency_code' => 'USD']), $column->toCompositeType(['value' => 1, 'currency_code' => 'USD']));
+        $this->assertEquals(new Money(['value' => 1, 'currency_code' => 'USD']), $column->toCompositeObject([1,'USD']));
+        $this->assertEquals(new Money(['value' => 1, 'currency_code' => 'USD']), $column->toCompositeObject(['value' => 1, 'currency_code' => 'USD']));
     }
 
     public function valuesProvider()

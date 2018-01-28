@@ -256,14 +256,14 @@ class ColumnSchema extends \yii\db\ColumnSchema
     }
 
     /**
-     * Converts array to composite type (array, object or model)
-     * @param array|object $value
-     * @return mixed
+     * Converts array to composite object
+     * @param array|mixed $value the value to convert.
+     * @return mixed Composite object. If the value is not an array then return it as is.
      */
-    public function toCompositeType($value)
+    public function toCompositeObject($value)
     {
-        if (!$value instanceof $this->phpType) {
-            $value = is_array($value) && count(array_filter(array_keys($value), 'is_string'))
+        if (is_array($value)) {
+            $value = !$value || count(array_filter(array_keys($value), 'is_string'))
                 ? $this->createCompositeObject($value)
                 : $this->phpTypecastComposite($value);
         }
