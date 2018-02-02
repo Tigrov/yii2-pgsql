@@ -108,15 +108,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
     {
         $value = $this->toArray($value);
         $value = $this->prepareCompositeValue($value);
-
-        $keys = array_keys($this->columns);
-        foreach ($value as $i => $val) {
-            $key = is_int($i) ? $keys[$i] : $i;
-            if (isset($this->columns[$key])) {
-                $column = $this->columns[$key];
-                $value[$i] = $column->dbTypecast($val);
-            }
-        }
+        $value = $this->typecastCompositeValue($value, false);
 
         return ArrayConverter::compositeToDb($value);
     }
@@ -183,25 +175,20 @@ class ColumnSchema extends \yii\db\ColumnSchema
     }
 
     /**
-     * Converts the composite type from PostgreSQL to PHP
-     * @param array|string|null $value the value to be converted
-     * @return array|null|object
+     * Converts the composite type to PHP
+     * @param array|string|object|null $value the value to be converted
+     * @return array|object|null Composite object as described in `ColumnSchema::$phpType` (@see `Schema::$compositeMap`) or `null`
      */
     public function phpTypecastComposite($value)
     {
-        if (!is_array($value)) {
+        if (is_string($value)) {
             $value = ArrayConverter::compositeToPhp($value);
         }
         if (is_array($value)) {
-            $result = [];
-            $keys = array_keys($this->columns);
-            foreach ($value as $i => $val) {
-                $key = $keys[$i];
-                $column = $this->columns[$key];
-                $result[$key] = $column->phpTypecast($val);
-            }
-
-            return $this->createCompositeObject($result);
+            $value = $this->typecastCompositeValue($value);
+            $value = $this->createCompositeObject($value);
+        } elseif (!$value instanceof $this->phpType) {
+            $value = null;
         }
 
         return $value;
@@ -256,19 +243,24 @@ class ColumnSchema extends \yii\db\ColumnSchema
     }
 
     /**
-     * Converts array to composite object
-     * @param array|mixed $value the value to convert.
-     * @return mixed Composite object. If the value is not an array then return it as is.
+     * @param $value
+     * @param bool $phpTypecast indicate which method to use `phpTypecast()` if true or `dbTypecast()` else
+     * @return array
      */
-    public function toCompositeObject($value)
+    protected function typecastCompositeValue($value, $phpTypecast = true)
     {
-        if (is_array($value)) {
-            $value = !$value || count(array_filter(array_keys($value), 'is_string'))
-                ? $this->createCompositeObject($value)
-                : $this->phpTypecastComposite($value);
+        $result = [];
+        $keys = array_keys($this->columns);
+        $typecastMethod = $phpTypecast ? 'phpTypecast' : 'dbTypecast';
+        foreach ($value as $i => $val) {
+            $key = is_int($i) ? $keys[$i] : $i;
+            if (isset($this->columns[$key])) {
+                $column = $this->columns[$key];
+                $result[$key] = $column->$typecastMethod($val);
+            }
         }
 
-        return $value;
+        return $result;
     }
 
     /**
