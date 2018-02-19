@@ -18,7 +18,6 @@ use yii\db\TableSchema;
 class Schema extends \yii\db\pgsql\Schema
 {
     const TYPE_BIT = 'bit';
-    const TYPE_JSON = 'json';
     const TYPE_COMPOSITE = 'composite';
 
     /**
@@ -42,8 +41,6 @@ class Schema extends \yii\db\pgsql\Schema
         $this->typeMap['bit'] = static::TYPE_BIT;
         $this->typeMap['bit varying'] = static::TYPE_BIT;
         $this->typeMap['varbit'] = static::TYPE_BIT;
-        $this->typeMap['json'] = static::TYPE_JSON;
-        $this->typeMap['jsonb'] = static::TYPE_JSON;
 
         parent::init();
     }
@@ -70,15 +67,8 @@ SELECT
     d.nspname AS table_schema,
     c.relname AS table_name,
     a.attname AS column_name,
-    COALESCE(NULLIF(a.attndims, 0), NULLIF(t.typndims, 0), (t.typcategory='A')::int) AS array_dimension,
-    CASE WHEN t.typndims > 0 
-        THEN tb.typdelim 
-        ELSE t.typdelim 
-    END AS delimiter,
-    COALESCE(td.oid, tb.oid, a.atttypid) AS type_id,
     COALESCE(td.typname, tb.typname, t.typname) AS data_type,
     COALESCE(td.typtype, tb.typtype, t.typtype) AS type_type,
-    t.typname AS attr_type,
     a.attlen AS character_maximum_length,
     pg_catalog.col_description(c.oid, a.attnum) AS column_comment,
     COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) AS modifier,
@@ -90,7 +80,11 @@ SELECT
         ELSE NULL
     END AS enum_values,
     information_schema._pg_char_max_length(information_schema._pg_truetypid(a, t), information_schema._pg_truetypmod(a, t))::numeric AS size,
-    a.attnum = ANY (ct.conkey) AS is_pkey
+    a.attnum = ANY (ct.conkey) AS is_pkey,
+    COALESCE(NULLIF(a.attndims, 0), NULLIF(t.typndims, 0), (t.typcategory='A')::int) AS dimension,
+    CASE WHEN t.typndims > 0 THEN tb.typdelim ELSE t.typdelim END AS delimiter,
+    COALESCE(td.oid, tb.oid, a.atttypid) AS type_id,
+    t.typname AS attr_type
 FROM
     pg_class c
     LEFT JOIN pg_attribute a ON a.attrelid = c.oid
@@ -160,7 +154,6 @@ SQL;
         if ($column->size === null && $info['modifier'] != -1 && !$column->scale) {
             $column->size = (int) $info['modifier'] - 4;
         }
-        $column->dimension = (int) $info['array_dimension'];
         $column->delimiter = $info['delimiter'];
 
         // b for a base type, c for a composite type, e for an enum type, p for a pseudo-type.
@@ -201,7 +194,6 @@ SQL;
         static $typeMap = [
             // abstract type => php type
             self::TYPE_BIT => 'integer',
-            self::TYPE_JSON => 'array',
         ];
 
         if (isset($typeMap[$column->type])) {

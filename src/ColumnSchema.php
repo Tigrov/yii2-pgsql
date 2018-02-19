@@ -7,19 +7,15 @@
 namespace tigrov\pgsql;
 
 use yii\base\Arrayable;
+use yii\db\ExpressionInterface;
 
 /**
  * ColumnSchema is the improved class which describes the metadata of a column in a PostgreSQL database table
  *
  * @author Sergei Tigrov <rrr-r@ya.ru>
  */
-class ColumnSchema extends \yii\db\ColumnSchema
+class ColumnSchema extends \yii\db\pgsql\ColumnSchema
 {
-    /**
-     * @var integer the dimension of an array (the number of indices needed to select an element), 0 if it is not an array.
-     */
-    public $dimension;
-
     /**
      * @var string the delimiter character to be used between values in arrays made of this type.
      */
@@ -35,6 +31,10 @@ class ColumnSchema extends \yii\db\ColumnSchema
      */
     public function dbTypecast($value)
     {
+        if ($value instanceof ExpressionInterface) {
+            return $value;
+        }
+
         if ($this->dimension > 0) {
             $value = $this->dbTypecastArrayValues($value, $this->dimension - 1);
 
@@ -96,7 +96,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
                 return $this->dbTypecastComposite($value);
         }
 
-        return parent::dbTypecast($value);
+        return $this->typecast($value);
     }
 
     /**
@@ -139,7 +139,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
      * @param mixed $value input value
      * @return mixed converted value
      */
-    public function phpTypecastValue($value)
+    protected function phpTypecastValue($value)
     {
         if ($value === null) {
             return null;
@@ -171,7 +171,7 @@ class ColumnSchema extends \yii\db\ColumnSchema
                 return $this->phpTypecastComposite($value);
         }
 
-        return parent::phpTypecast($value);
+        return $this->typecast($value);
     }
 
     /**
