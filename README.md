@@ -3,9 +3,11 @@ yii2-pgsql
 
 Improved PostgreSQL schemas for Yii2.
 
+Yii2 version 2.0.14 and above supports `array` and `json` Postgres' types.
+
 Supports follow types for ActiveRecord models:
-* `array`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
-* `json`, issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
+* `array`
+* `json`
 * [`composite`](docs/composite.md), https://www.postgresql.org/docs/current/static/rowtypes.html
 * `domain`, https://www.postgresql.org/docs/current/static/sql-createdomain.html
 * fixes type `bit`, issue [#7682](https://github.com/yiisoft/yii2/issues/7682)
@@ -17,11 +19,7 @@ Supports follow types for ActiveRecord models:
 Limitation
 ------------
 
-When you use this extension you can't specify the PDO type by using an array: `[value, type]`,
-
-e.g. `['name' => 'John', 'profile' => [$profile, \PDO::PARAM_LOB]]`.
-
-See the issue [#7481](https://github.com/yiisoft/yii2/issues/7481)
+Starting with version 1.2.0 requires Yii2 version 2.0.14 and above.
 
 Installation
 ------------

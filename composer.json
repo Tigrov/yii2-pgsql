@@ -1,7 +1,7 @@
 {
     "name": "tigrov/yii2-pgsql",
     "description": "Improved PostgreSQL schemas for Yii2",
-    "keywords": ["yii2", "extension", "pgsql", "postgres", "postgresql", "array", "json", "bit", "datetime", "timestamp"],
+    "keywords": ["yii2", "extension", "pgsql", "postgres", "postgresql", "array", "json", "bit", "datetime", "timestamp", "composite", "domain"],
     "type": "yii2-extension",
     "license": "MIT",
     "support": {
@@ -14,7 +14,7 @@
         }
     ],
     "require": {
-        "yiisoft/yii2": "~2.0.0"
+        "yiisoft/yii2": "^2.0.14"
     },
     "repositories": [
         {
