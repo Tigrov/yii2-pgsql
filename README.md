@@ -3,7 +3,7 @@ yii2-pgsql
 
 Improved PostgreSQL schemas for Yii2.
 
-Yii2 version 2.0.14 and above supports `array` and `json` Postgres' types.
+Yii 2.0.14 and above supports `array` and `json` Postgres' types.
 
 Supports follow types for ActiveRecord models:
 * `array`
@@ -19,8 +19,8 @@ Supports follow types for ActiveRecord models:
 Limitation
 ------------
 
-Since version 1.2.0 requires Yii2 version 2.0.14 and above.  
-You can use version 1.1.11 if you have Yii2 version 2.0.13 and below.
+Since version 1.2.0 requires Yii 2.0.14 and above.  
+You can use version 1.1.11 if you have Yii 2.0.13 and below.
 
 Installation
 ------------
