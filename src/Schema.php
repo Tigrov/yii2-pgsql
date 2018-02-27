@@ -73,7 +73,7 @@ SELECT
     pg_catalog.col_description(c.oid, a.attnum) AS column_comment,
     COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) AS modifier,
     NOT (a.attnotnull OR t.typnotnull) AS is_nullable,
-    COALESCE(t.typdefault, CAST(pg_get_expr(ad.adbin, ad.adrelid) AS varchar)) AS column_default,
+    COALESCE(t.typdefault, pg_get_expr(ad.adbin, ad.adrelid)::varchar) AS column_default,
     COALESCE(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval', false) AS is_autoinc,
     CASE WHEN COALESCE(td.typtype, tb.typtype, t.typtype) = 'e'::char
         THEN array_to_string((SELECT array_agg(enumlabel) FROM pg_enum WHERE enumtypid = COALESCE(td.oid, tb.oid, a.atttypid))::varchar[], ',')
@@ -150,7 +150,7 @@ SQL;
         list($info['numeric_precision'], $info['numeric_scale']) = $this->getPrecisionScale($info);
 
         $column = parent::loadColumnSchema($info);
-        $column->dbType = $info['attr_type'];
+        $column->dbType = ltrim($info['attr_type'], '_');
         if ($column->size === null && $info['modifier'] != -1 && !$column->scale) {
             $column->size = (int) $info['modifier'] - 4;
         }

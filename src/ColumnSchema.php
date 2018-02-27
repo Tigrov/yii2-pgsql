@@ -6,8 +6,9 @@
 
 namespace tigrov\pgsql;
 
-use yii\base\Arrayable;
 use yii\db\ExpressionInterface;
+use yii\db\JsonExpression;
+use yii\db\PdoValue;
 
 /**
  * ColumnSchema is the improved class which describes the metadata of a column in a PostgreSQL database table
@@ -36,35 +37,10 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
         }
 
         if ($this->dimension > 0) {
-            $value = $this->dbTypecastArrayValues($value, $this->dimension - 1);
-
-            return ArrayConverter::toDb($value, $this->delimiter);
+            return new ArrayExpression($value, $this->dbType, $this->dimension, $this);
         }
 
         return $this->dbTypecastValue($value);
-    }
-
-    /**
-     * Converts array's values from PHP to PostgreSQL
-     * @param array|null $value the value to be converted
-     * @param integer $dimension the dimension of an array
-     * @return array
-     */
-    protected function dbTypecastArrayValues($value, $dimension)
-    {
-        if (is_array($value)) {
-            if ($dimension > 0) {
-                foreach ($value as $key => $val) {
-                    $value[$key] = $this->dbTypecastArrayValues($val, $dimension - 1);
-                }
-            } else {
-                foreach ($value as $key => $val) {
-                    $value[$key] = $this->dbTypecastValue($val);
-                }
-            }
-        }
-
-        return $value;
     }
 
     /**
@@ -82,9 +58,7 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
             case Schema::TYPE_BIT:
                 return decbin($value);
             case Schema::TYPE_BINARY:
-                return is_string($value) ? '\\x' . implode(unpack('H*', $value)) : $value;
-            case Schema::TYPE_JSON:
-                return json_encode($value);
+                return is_string($value) ? new PdoValue($value, \PDO::PARAM_LOB) : $value;
             case Schema::TYPE_TIMESTAMP:
             case Schema::TYPE_DATETIME:
                 return \Yii::$app->formatter->asDatetime($value, 'yyyy-MM-dd HH:mm:ss');
@@ -92,25 +66,13 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
                 return \Yii::$app->formatter->asDate($value, 'yyyy-MM-dd');
             case Schema::TYPE_TIME:
                 return \Yii::$app->formatter->asTime($value, 'HH:mm:ss');
+            case Schema::TYPE_JSON:
+                return new JsonExpression($value, $this->dbType);
             case Schema::TYPE_COMPOSITE:
-                return $this->dbTypecastComposite($value);
+                return new CompositeExpression($value, $this->dbType, $this);
         }
 
         return $this->typecast($value);
-    }
-
-    /**
-     * Convert the composite type from PHP to PostgreSQL
-     * @param array|object $value the value to be converted
-     * @return null|string
-     */
-    public function dbTypecastComposite($value)
-    {
-        $value = $this->toArray($value);
-        $value = $this->prepareCompositeValue($value);
-        $value = $this->typecastCompositeValue($value, false);
-
-        return ArrayConverter::compositeToDb($value);
     }
 
     /**
@@ -120,7 +82,7 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
     {
         if ($this->dimension > 0) {
             if (!is_array($value)) {
-                $value = ArrayConverter::toPhp($value, $this->delimiter);
+                $value = $this->getArrayParser()->parse($value);
             }
             if (is_array($value)) {
                 array_walk_recursive($value, function (&$val, $key) {
@@ -182,13 +144,21 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
     public function phpTypecastComposite($value)
     {
         if (is_string($value)) {
-            $value = ArrayConverter::compositeToPhp($value);
+            $value = $this->getCompositeParser()->parse($value);
         }
         if (is_array($value)) {
-            $value = $this->typecastCompositeValue($value);
-            $value = $this->createCompositeObject($value);
+            $result = [];
+            $fields = array_keys($this->columns);
+            foreach ($value as $i => $item) {
+                $field = is_int($i) ? $fields[$i] : $i;
+                if (isset($this->columns[$field])) {
+                    $result[$field] = $this->columns[$field]->phpTypecast($item);
+                }
+            }
+
+            return $this->createCompositeObject($result);
         } elseif (!$value instanceof $this->phpType) {
-            $value = null;
+            return null;
         }
 
         return $value;
@@ -212,66 +182,18 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
     }
 
     /**
-     * Sort a composite value in the order of the columns and append skipped values as default value
-     * e.g. if default is (0,USD) and $value is ['value' => 10] or [10]
-     * then will be converted as ['value' => 10, 'currency_code' => 'USD']
-     * @param array $value the composite value
-     * @return array
+     * Creates instance of CompositeParser
+     *
+     * @return CompositeParser
      */
-    protected function prepareCompositeValue($value)
+    protected function getCompositeParser()
     {
-        $keys = array_keys($this->columns);
-        $valueKeys = array_keys($value);
-        if ($keys !== $valueKeys) {
-            $defaultValue = $this->defaultValue !== null ? $this->toArray($this->defaultValue) : [];
-            if (count(array_filter($valueKeys, 'is_string'))) {
-                $list = [];
-                foreach ($keys as $key) {
-                    $list[$key] = array_key_exists($key, $value) ? $value[$key] : (isset($defaultValue[$key]) ? $defaultValue[$key] : null);
-                }
+        static $parser = null;
 
-                return $list;
-            } elseif (count($valueKeys) < count($keys)) {
-                $skippedKeys = array_slice($keys, count($valueKeys));
-                foreach ($skippedKeys as $key) {
-                    array_push($value, (isset($defaultValue[$key]) ? $defaultValue[$key] : null));
-                }
-            }
+        if ($parser === null) {
+            $parser = new CompositeParser();
         }
 
-        return $value;
-    }
-
-    /**
-     * @param $value
-     * @param bool $phpTypecast indicate which method to use `phpTypecast()` if true or `dbTypecast()` else
-     * @return array
-     */
-    protected function typecastCompositeValue($value, $phpTypecast = true)
-    {
-        $result = [];
-        $keys = array_keys($this->columns);
-        $typecastMethod = $phpTypecast ? 'phpTypecast' : 'dbTypecast';
-        foreach ($value as $i => $val) {
-            $key = is_int($i) ? $keys[$i] : $i;
-            if (isset($this->columns[$key])) {
-                $column = $this->columns[$key];
-                $result[$key] = $column->$typecastMethod($val);
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Converts object to array
-     * @param array|object $value the value to be converted
-     * @return array
-     */
-    protected function toArray($value)
-    {
-        return $value instanceof Arrayable
-            ? $value->toArray()
-            : (array)$value;
+        return $parser;
     }
 }

@@ -2,44 +2,22 @@
 
 namespace tigrov\tests\unit\pgsql;
 
-use tigrov\pgsql\ArrayConverter;
+use tigrov\pgsql\CompositeParser;
 
 class CompositeArrayConverterTest extends TestCase
 {
-    public function testNullCompositeToDb()
-    {
-        $this->assertNull(ArrayConverter::compositeToDb(null));
-    }
-
-    public function testBooleanCompositeToDb()
-    {
-        $this->assertSame('(false)', ArrayConverter::compositeToDb([false]));
-        $this->assertSame('(true)', ArrayConverter::compositeToDb([true]));
-    }
-
-    /**
-     * @dataProvider valuesProvider
-     */
-    public function testCompositeToDb($expected, $value, $isSame = true)
-    {
-        $this->assertSame($expected, ArrayConverter::compositeToDb($value));
-    }
-
-    public function testAdditionalCompositeToDb()
-    {
-        $this->assertNull(ArrayConverter::compositeToDb(''));
-    }
-
     public function testNullCompositeToPhp()
     {
-        $this->assertNull(ArrayConverter::compositeToPhp(null));
+        $parser = new CompositeParser;
+        $this->assertNull($parser->parse(null));
     }
 
     public function testBooleanCompositeToPhp()
     {
+        $parser = new CompositeParser;
         // Typecasting for boolean type realized in ColumnSchema
-        $this->assertSame(['f'], ArrayConverter::compositeToPhp('(f)'));
-        $this->assertSame(['t'], ArrayConverter::compositeToPhp('(t)'));
+        $this->assertSame(['f'], $parser->parse('(f)'));
+        $this->assertSame(['t'], $parser->parse('(t)'));
     }
 
     /**
@@ -47,18 +25,18 @@ class CompositeArrayConverterTest extends TestCase
      */
     public function testCompositeToPhp($value, $expected, $isSame = true)
     {
+        $parser = new CompositeParser;
         $assertMethod = $isSame ? 'assertSame' : 'assertEquals';
-        $this->$assertMethod($expected, ArrayConverter::compositeToPhp($value));
+        $this->$assertMethod($expected, $parser->parse($value));
     }
 
     public function testAdditionalCompositeToPhp()
     {
-        $this->assertNull(ArrayConverter::compositeToPhp(''));
-        $this->assertSame([null,null], ArrayConverter::compositeToPhp('(,)'));
-        $this->assertSame(['.'], ArrayConverter::compositeToPhp('(.)'));
-        $this->assertSame(['string'], ArrayConverter::compositeToPhp('(string)'));
-        $this->assertSame(['string1', ',', 'string3'], ArrayConverter::compositeToPhp('(string1,",",string3)'));
-        $this->assertSame([['value']], ArrayConverter::compositeToPhp('({value})'));
+        $parser = new CompositeParser;
+        $this->assertSame([null,null], $parser->parse('(,)'));
+        $this->assertSame(['.'], $parser->parse('(.)'));
+        $this->assertSame(['string'], $parser->parse('(string)'));
+        $this->assertSame(['string1', ',', 'string3'], $parser->parse('(string1,",",string3)'));
     }
 
     public function valuesProvider()

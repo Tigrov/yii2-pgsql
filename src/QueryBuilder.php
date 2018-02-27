@@ -24,4 +24,15 @@ class QueryBuilder extends \yii\db\pgsql\QueryBuilder
 
         parent::init();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function defaultExpressionBuilders()
+    {
+        return array_merge(parent::defaultExpressionBuilders(), [
+            'tigrov\pgsql\ArrayExpression' => 'tigrov\pgsql\ArrayExpressionBuilder',
+            'tigrov\pgsql\CompositeExpression' => 'tigrov\pgsql\CompositeExpressionBuilder',
+        ]);
+    }
 }

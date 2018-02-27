@@ -19,7 +19,7 @@ Supports follow types for ActiveRecord models:
 Limitation
 ------------
 
-Starting with version 1.2.0 requires Yii2 version 2.0.14 and above.  
+Since version 1.2.0 requires Yii2 version 2.0.14 and above.  
 You can use version 1.1.11 if you have Yii2 version 2.0.13 and below.
 
 Installation

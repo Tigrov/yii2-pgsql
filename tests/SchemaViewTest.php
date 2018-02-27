@@ -55,7 +55,7 @@ class SchemaViewTest extends TestCase
         $this->assertSame('\tigrov\tests\unit\pgsql\data\Money', $columns['price']->phpType);
 
         $this->assertSame(Schema::TYPE_COMPOSITE, $columns['prices']->type);
-        $this->assertSame('_money', $columns['prices']->dbType);
+        $this->assertSame('money', $columns['prices']->dbType);
         $this->assertSame('\tigrov\tests\unit\pgsql\data\Money', $columns['prices']->phpType);
     }
 
