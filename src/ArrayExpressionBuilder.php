@@ -18,19 +18,6 @@ class ArrayExpressionBuilder extends \yii\db\pgsql\ArrayExpressionBuilder
     /**
      * {@inheritdoc}
      */
-    public function build(ExpressionInterface $expression, array &$params = [])
-    {
-        $value = $expression->getValue();
-        if ($value === null) {
-            return 'NULL';
-        }
-
-        return parent::build($expression, $params);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function getTypehint(\yii\db\ArrayExpression $expression)
     {
         $type = $expression->getType();
