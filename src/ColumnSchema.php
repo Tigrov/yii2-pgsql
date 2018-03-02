@@ -37,6 +37,10 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
         }
 
         if ($this->dimension > 0) {
+            if ($value === null) {
+                return null;
+            }
+
             return new ArrayExpression($value, $this->dbType, $this->dimension, $this);
         }
 
