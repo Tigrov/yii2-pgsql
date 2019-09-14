@@ -47,8 +47,7 @@ class CompositeExpressionBuilder implements ExpressionBuilderInterface
      */
     protected function buildPlaceholders(ExpressionInterface $expression, &$params)
     {
-        $value = $expression->getValue();
-        $value = $this->prepareValue($expression, $value);
+        $value = $this->prepareValue($expression);
 
         $columns = $expression->getColumn()->columns;
         $fields = array_keys($columns);
@@ -94,11 +93,11 @@ class CompositeExpressionBuilder implements ExpressionBuilderInterface
      * e.g. if default is (0,USD) and $value is ['value' => 10] or [10]
      * then will be converted as ['value' => 10, 'currency_code' => 'USD']
      * @param CompositeExpression $expression
-     * @param array $value the composite value
      * @return array
      */
-    protected function prepareValue(CompositeExpression $expression, $value)
+    protected function prepareValue(CompositeExpression $expression)
     {
+        $value = $expression->getValue();
         $value = $this->toArray($value);
         $column = $expression->getColumn();
         if ($column) {
