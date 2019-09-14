@@ -73,7 +73,7 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
             case Schema::TYPE_JSON:
                 return new JsonExpression($value, $this->dbType);
             case Schema::TYPE_COMPOSITE:
-                return new CompositeExpression($value, $this->dbType, $this);
+                return $this->createCompositeExpression($value);
         }
 
         return $this->typecast($value);
@@ -183,6 +183,18 @@ class ColumnSchema extends \yii\db\pgsql\ColumnSchema
         }
 
         return \Yii::createObject($this->phpType, [$values]);
+    }
+
+    /**
+     * Creates CompositeExpression object
+     *
+     * @param array|mixed $value the composite type content. Either represented as an array of values or a composite
+     * object which corresponds to Schema::compositeMap and could be converted to array.
+     * @return CompositeExpression
+     */
+    public function createCompositeExpression($value)
+    {
+        return new CompositeExpression($value, $this->dbType, $this);
     }
 
     /**
