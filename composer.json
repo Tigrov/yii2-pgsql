@@ -16,6 +16,9 @@
     "require": {
         "yiisoft/yii2": "^2.0.14.1"
     },
+    "require-dev": {
+        "phpunit/phpunit": "4.8.34"
+    },
     "repositories": [
         {
             "type": "composer",
