@@ -27,9 +27,13 @@ class ArrayExpressionBuilder extends \yii\db\pgsql\ArrayExpressionBuilder
 
         if ($expression instanceof ArrayExpression) {
             $column = $expression->getColumn();
-            if ($column && $column->type === Schema::TYPE_COMPOSITE && strpos($type, '.') === false) {
-                $schema = $this->queryBuilder->db->schema->defaultSchema;
-                $type = $schema . '.' . $type;
+            if ($column !== null) {
+                if ($column->type === Schema::TYPE_COMPOSITE || $column->enumValues !== null) {
+                    if (strpos($type, '.') === false) {
+                        $schema = $this->queryBuilder->db->schema->defaultSchema;
+                        $type = $schema . '.' . $type;
+                    }
+                }
             }
         }
 
