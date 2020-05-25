@@ -9,7 +9,12 @@ return [
             'password' => '',
             'charset' => 'utf8',
             'schemaMap' => [
-                'pgsql'=> 'tigrov\pgsql\Schema',
+                'pgsql'=> [
+                    'class' => 'tigrov\pgsql\Schema',
+                    'compositeMap' => [
+                        'money' => '\tigrov\tests\unit\pgsql\data\Money'
+                    ],
+                ],
             ],
         ],
     ],

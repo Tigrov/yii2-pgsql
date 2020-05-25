@@ -3,6 +3,7 @@
 namespace tigrov\tests\unit\pgsql;
 
 use tigrov\tests\unit\pgsql\data\Datatypes;
+use tigrov\tests\unit\pgsql\data\Money;
 use yii\helpers\ArrayHelper;
 
 class ActiveRecordTest extends TestCase
@@ -106,6 +107,7 @@ class ActiveRecordTest extends TestCase
         // For default values see TestCase::createDatatypesTable()
         $now = new \DateTime;
         $this->assertLessThanOrEqual(1, static::convertIntervalToSeconds($now->diff($model->datetime)));
+        $this->assertLessThanOrEqual(1, static::convertIntervalToSeconds($now->diff($model->datetime2)));
         foreach ($model->datetimes as $datetime) {
             $this->assertLessThanOrEqual(1, static::convertIntervalToSeconds($now->diff($datetime)));
         }
@@ -121,8 +123,8 @@ class ActiveRecordTest extends TestCase
         $this->assertSame(true, $model->boolean);
         $this->assertSame(1, $model->smallint);
         $this->assertNull($model->timestamp);
-        $this->assertSame(['value' => '1.0000', 'currency_code' => 'USD'], $model->price);
-        $this->assertSame([['value' => '1.0000', 'currency_code' => 'USD']], $model->prices);
+        $this->assertEquals(new Money(['value' => '1.0000', 'currency_code' => 'USD']), $model->price);
+        $this->assertEquals([new Money(['value' => '1.0000', 'currency_code' => 'USD'])], $model->prices);
         $this->assertSame('USD', $model->currency_code);
         $this->assertSame('test', $model->binary);
         $this->assertSame(['test'], $model->binaries);
@@ -199,9 +201,9 @@ class ActiveRecordTest extends TestCase
             ['json', ['key' => 'value']],
             ['json', ['key1' => 'value1', 'key2' => true, 'key3' => false, 'key4' => '', 'key5' => null]],
             ['json', ['key' => ['key' => ['key' => 'value']]]],
-            ['price', ['value' => null, 'currency_code' => 'EUR']],
-            ['price', ['value' => '10.0000', 'currency_code' => 'USD']],
-            ['prices', [['value' => '10.0000', 'currency_code' => 'USD'], ['value' => '99.9999', 'currency_code' => 'EUR']]],
+            ['price', new Money(['value' => null, 'currency_code' => 'EUR']), false],
+            ['price', new Money(['value' => '10.0000', 'currency_code' => 'USD']), false],
+            ['prices', [new Money(['value' => '10.0000', 'currency_code' => 'USD']), new Money(['value' => '99.9999', 'currency_code' => 'EUR'])], false],
             ['binary', 'string'],
             ['binaries', ['string']],
         ];

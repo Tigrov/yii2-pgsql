@@ -17,14 +17,6 @@ class SchemaViewTest extends TestCase
         if (file_exists(__DIR__ . '/data/config.local.php')) {
             $config = ArrayHelper::merge($config, require(__DIR__ . '/data/config.local.php'));
         }
-        if (is_array($config['components']['db']['schemaMap']['pgsql'])) {
-            $config['components']['db']['schemaMap']['pgsql']['compositeMap']['money'] = '\tigrov\tests\unit\pgsql\data\Money';
-        } else {
-            $config['components']['db']['schemaMap']['pgsql'] = [
-                'class' => $config['components']['db']['schemaMap']['pgsql'],
-                'compositeMap' => ['money' => '\tigrov\tests\unit\pgsql\data\Money'],
-            ];
-        }
 
         $this->mockApplication($config);
         $this->createDatatypesTable();

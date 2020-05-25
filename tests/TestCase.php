@@ -83,6 +83,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'varbit' => 'varbit DEFAULT \'B101\'',
             'bits' => 'varbit[] DEFAULT \'{101}\'',
             'datetime' => 'timestamp DEFAULT now()',
+            'datetime2' => 'timestamp DEFAULT CURRENT_TIMESTAMP',
             'datetimes' => 'timestamp[] DEFAULT \'{now(),now()}\'',
             'json' => 'jsonb DEFAULT \'[]\'',
             'boolean' => 'boolean DEFAULT true',
@@ -115,5 +116,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $db->createCommand('DROP TABLE IF EXISTS ' . static::TABLENAME . ' CASCADE')->execute();
         $db->createCommand('DROP TYPE IF EXISTS ' . $moneyType . ' CASCADE')->execute();
         $db->createCommand('DROP DOMAIN IF EXISTS ' . $currencyType . ' CASCADE')->execute();
+        $db->close();
     }
 }

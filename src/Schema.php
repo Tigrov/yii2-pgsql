@@ -20,6 +20,9 @@ class Schema extends \yii\db\pgsql\Schema
     const TYPE_BIT = 'bit';
     const TYPE_COMPOSITE = 'composite';
 
+    const DATE_TYPES = [self::TYPE_TIMESTAMP, self::TYPE_DATETIME, self::TYPE_DATE, self::TYPE_TIME];
+    const CURRENT_TIME_DEFAULTS = ['now()', 'CURRENT_TIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIME'];
+
     /**
      * @var array mapping from composite column types (keys) to PHP types (classes in configuration style).
      * `array` by default, `object` also available as PHP type then a result will be converted to \stdClass.
@@ -62,6 +65,12 @@ class Schema extends \yii\db\pgsql\Schema
     {
         $tableName = $this->db->quoteValue($table->name);
         $schemaName = $this->db->quoteValue($table->schemaName);
+
+        $orIdentity = '';
+        if (version_compare($this->db->serverVersion, '12.0', '>=')) {
+            $orIdentity = 'OR a.attidentity != \'\'';
+        }
+
         $sql = <<<SQL
 SELECT
     d.nspname AS table_schema,
@@ -74,7 +83,8 @@ SELECT
     COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) AS modifier,
     NOT (a.attnotnull OR t.typnotnull) AS is_nullable,
     COALESCE(t.typdefault, pg_get_expr(ad.adbin, ad.adrelid)::varchar) AS column_default,
-    COALESCE(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval', false) AS is_autoinc,
+    COALESCE(pg_get_expr(ad.adbin, ad.adrelid) ~ 'nextval', false) {$orIdentity} AS is_autoinc,
+    pg_get_serial_sequence(quote_ident(d.nspname) || '.' || quote_ident(c.relname), a.attname) AS sequence_name,
     CASE WHEN COALESCE(td.typtype, tb.typtype, t.typtype) = 'e'::char
         THEN array_to_string((SELECT array_agg(enumlabel) FROM pg_enum WHERE enumtypid = COALESCE(td.oid, tb.oid, a.atttypid))::varchar[], ',')
         ELSE NULL
@@ -95,7 +105,7 @@ FROM
     LEFT JOIN pg_namespace d ON d.oid = c.relnamespace
     LEFT JOIN pg_constraint ct ON ct.conrelid = c.oid AND ct.contype = 'p'
 WHERE
-    a.attnum > 0 AND t.typname != ''
+    a.attnum > 0 AND t.typname != '' AND NOT a.attisdropped
     AND c.relname = {$tableName}
     AND d.nspname = {$schemaName}
 ORDER BY
@@ -114,16 +124,14 @@ SQL;
             $table->columns[$column->name] = $column;
             if ($column->isPrimaryKey) {
                 $table->primaryKey[] = $column->name;
-                if ($table->sequenceName === null && preg_match("/nextval\\('\"?\\w+\"?\.?\"?\\w+\"?'(::regclass)?\\)/", $column->defaultValue) === 1) {
-                    $table->sequenceName = preg_replace(['/nextval/', '/::/', '/regclass/', '/\'\)/', '/\(\'/'], '', $column->defaultValue);
+                if ($table->sequenceName === null) {
+                    $table->sequenceName = $column->sequenceName;
                 }
                 $column->defaultValue = null;
             } elseif ($column->defaultValue) {
-                if (in_array($column->type, [static::TYPE_TIMESTAMP, static::TYPE_DATETIME, static::TYPE_DATE, static::TYPE_TIME]) && $column->defaultValue === 'now()') {
-                    $column->defaultValue = new \DateTime;
-                } elseif ($column->type === static::TYPE_BIT && !$column->dimension) {
-                    $column->defaultValue = $column->phpTypecast(trim($column->defaultValue, 'B\''));
-                } elseif (preg_match("/^'(.*?)'::/", $column->defaultValue, $matches)) {
+                if (in_array($column->type, static::DATE_TYPES) && in_array($column->defaultValue, static::CURRENT_TIME_DEFAULTS)) {
+                    $column->defaultValue = new \DateTime();
+                } elseif (preg_match("/^B?'(.*?)'::/", $column->defaultValue, $matches)) {
                     $column->defaultValue = $column->phpTypecast($matches[1]);
                 } elseif (preg_match('/^(\()?(.*?)(?(1)\))(?:::.+)?$/', $column->defaultValue, $matches)) {
                     if ($matches[2] === 'NULL') {
