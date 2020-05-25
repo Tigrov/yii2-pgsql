@@ -59,7 +59,7 @@ class Product extends ActiveRecord
     public function rules()
     {
         return [
-            [['price'], 'safe'],
+            [['price'], '\tigrov\pgsql\validators\CompositeValidator'],
         ];
     }
 }
