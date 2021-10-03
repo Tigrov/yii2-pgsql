@@ -78,6 +78,7 @@ SELECT
     a.attname AS column_name,
     COALESCE(td.typname, tb.typname, t.typname) AS data_type,
     COALESCE(td.typtype, tb.typtype, t.typtype) AS type_type,
+    (SELECT nspname FROM pg_namespace WHERE oid = COALESCE(td.typnamespace, tb.typnamespace, t.typnamespace)) AS type_scheme,
     a.attlen AS character_maximum_length,
     pg_catalog.col_description(c.oid, a.attnum) AS column_comment,
     COALESCE(NULLIF(a.atttypmod, -1), t.typtypmod) AS modifier,
